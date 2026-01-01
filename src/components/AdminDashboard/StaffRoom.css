@@ -1,0 +1,230 @@
+/* --- VIP CONTAINER --- */
+.staff-room-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: radial-gradient(circle at center, #1e272e 0%, #000000 100%);
+  color: #fff;
+  font-family: 'Segoe UI', sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Texture Overlay */
+.staff-room-container::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background-image: url("https://www.transparenttextures.com/patterns/black-felt.png");
+  opacity: 0.1;
+  pointer-events: none;
+}
+
+/* --- HEADER --- */
+.staff-header {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px; /* Thoda slim kiya header ko */
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+  box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+  z-index: 10;
+}
+
+.staff-back-btn {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #d4af37;
+  font-size: 1rem;
+  padding: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: 0.3s;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.staff-back-btn:hover {
+  background: #d4af37;
+  color: #000;
+}
+
+.vip-badge {
+  margin: 0 10px;
+  font-size: 1.5rem;
+  color: #d4af37;
+  filter: drop-shadow(0 0 5px rgba(212, 175, 55, 0.6));
+}
+
+.room-title h2 {
+  margin: 0;
+  font-size: 1rem;
+  letter-spacing: 1px;
+  color: #ecf0f1;
+  font-family: 'Cinzel', serif;
+}
+
+.room-title p {
+  margin: 0;
+  font-size: 0.65rem;
+  color: #bdc3c7;
+  display: flex; align-items: center;
+}
+
+.vip-tag {
+  background: #d4af37;
+  color: #000;
+  font-size: 0.5rem;
+  padding: 1px 4px;
+  border-radius: 3px;
+  vertical-align: middle;
+  font-weight: bold;
+  margin-left: 5px;
+}
+
+/* --- CHAT BODY --- */
+.staff-body {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* Messages ke beech gap kam kiya */
+}
+
+/* Scrollbar */
+.staff-body::-webkit-scrollbar { width: 4px; }
+.staff-body::-webkit-scrollbar-thumb { background: #444; border-radius: 10px; }
+
+/* Empty State */
+.welcome-vip {
+  text-align: center;
+  margin-top: 30%;
+  opacity: 0.4;
+}
+.big-crown { font-size: 3rem; color: #d4af37; margin-bottom: 10px; }
+
+/* --- MESSAGES --- */
+.staff-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  max-width: 75%; /* Thoda width kam kiya taaki compact lage */
+}
+
+.row-me {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.row-other {
+  align-self: flex-start;
+}
+
+.sender-avatar {
+  width: 28px; height: 28px; /* Avatar chhota kiya */
+  background: #2c3e50;
+  border: 1px solid #d4af37;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #d4af37;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+/* BUBBLE STYLING (Main Changes Here) */
+.staff-bubble {
+  padding: 6px 12px; /* Padding bohot kam kar di */
+  border-radius: 12px;
+  position: relative;
+  font-size: 0.9rem;
+  line-height: 1.3;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  word-wrap: break-word;
+}
+
+/* Text ke andar ka extra gap hataya */
+.msg-text {
+  margin: 0; 
+  padding: 0;
+}
+
+/* My Bubble (Gold) */
+.row-me .staff-bubble {
+  background: linear-gradient(135deg, #d4af37 0%, #c49926 100%);
+  color: #000;
+  border-bottom-right-radius: 2px;
+  border: none; /* Outline hata di */
+}
+
+/* Other Bubble (Dark Glass) */
+.row-other .staff-bubble {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.05); /* Outline bohot subtle kar di */
+  border-bottom-left-radius: 2px;
+}
+
+.sender-name {
+  display: block;
+  font-size: 0.6rem;
+  color: #f1c40f;
+  margin-bottom: 2px;
+  font-weight: bold;
+}
+
+/* TIME STYLING (Small & Compact) */
+.msg-time {
+  display: block;
+  font-size: 0.55rem; /* Bohot chhota font */
+  margin-top: 3px; /* Text ke ekdum paas */
+  text-align: right;
+  opacity: 0.7;
+}
+
+.row-me .msg-time { color: rgba(0,0,0,0.6); } /* Black text on Gold */
+.row-other .msg-time { color: rgba(255,255,255,0.5); } /* White text on Dark */
+
+/* --- FOOTER --- */
+.staff-footer {
+  padding: 15px;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(5px);
+}
+
+.input-glass-wrapper {
+  display: flex;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  padding: 4px 8px; /* Footer slim kiya */
+  border-radius: 25px;
+  align-items: center;
+}
+
+.staff-footer input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 10px;
+  color: white;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.vip-send-btn {
+  background: #d4af37;
+  color: #000;
+  border: none;
+  width: 35px; height: 35px; /* Button chhota kiya */
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.9rem;
+  transition: 0.3s;
+  margin-left: 5px;
+}
+
+.vip-send-btn:hover {
+  background: #f1c40f;
+  transform: scale(1.05);
+}

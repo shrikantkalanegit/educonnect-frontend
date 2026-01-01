@@ -1,0 +1,73 @@
+.books-page-container {
+  min-height: 90vh;
+  background-color: #f4f7f6;
+  padding: 40px 20px;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.books-header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+.books-header h1 { color: #2c3e50; font-size: 2.5rem; margin-bottom: 10px; }
+
+/* Search Box */
+.search-box {
+  position: relative; max-width: 500px; margin: 25px auto 0;
+}
+.search-box input {
+  width: 100%; padding: 15px 20px 15px 50px; border: 2px solid #e1e1e1;
+  border-radius: 50px; font-size: 1rem; outline: none; transition: 0.3s;
+}
+.search-box input:focus { border-color: #00b894; box-shadow: 0 5px 15px rgba(0, 184, 148, 0.2); }
+.search-icon {
+  position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: #aaa;
+}
+
+/* Grid */
+.books-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Card Design */
+.book-card {
+  background: white; border-radius: 15px; overflow: hidden;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+  transition: transform 0.3s ease;
+  display: flex; flex-direction: column;
+}
+.book-card:hover { transform: translateY(-8px); }
+
+/* Cover Icon area */
+.book-cover {
+  height: 120px; background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
+  display: flex; justify-content: center; align-items: center;
+}
+.cover-icon { font-size: 3rem; color: white; opacity: 0.8; }
+
+/* Info */
+.book-info { padding: 20px; flex-grow: 1; }
+.subject-tag {
+  background: #e0f2f1; color: #00695c; padding: 4px 10px; border-radius: 20px;
+  font-size: 0.75rem; font-weight: bold; text-transform: uppercase;
+}
+.book-info h3 { margin: 10px 0 5px; font-size: 1.2rem; color: #333; }
+.author { color: #888; font-size: 0.9rem; margin: 0; }
+
+/* Footer & Button */
+.book-footer {
+  padding: 15px 20px; border-top: 1px solid #f0f0f0;
+  display: flex; justify-content: space-between; align-items: center; background: #fafafa;
+}
+.file-size { font-size: 0.85rem; color: #aaa; font-weight: 600; }
+
+.read-btn {
+  background: #2d3436; color: white; border: none; padding: 8px 16px; border-radius: 8px;
+  cursor: pointer; font-size: 0.9rem; font-weight: 500; display: flex; align-items: center; gap: 8px;
+  transition: 0.2s;
+}
+.read-btn:hover { background: #000; }

@@ -1,0 +1,125 @@
+/* Container */
+.home-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #2c3e50;
+}
+
+/* HERO SECTION */
+.hero-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #2d3436; /* Dark background */
+  color: white;
+  padding: 40px;
+  border-radius: 25px;
+  margin-bottom: 40px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+}
+
+.hero-text h1 { margin: 0; font-size: 2.5rem; }
+.hero-text p { margin: 10px 0 20px; opacity: 0.8; font-size: 1.1rem; }
+
+.date-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(255,255,255,0.15); padding: 8px 16px;
+  border-radius: 20px; font-size: 0.9rem; backdrop-filter: blur(5px);
+}
+
+/* Progress Card (Glassmorphism) */
+.progress-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  padding: 20px; border-radius: 15px; border: 1px solid rgba(255,255,255,0.2);
+  width: 250px; text-align: left;
+}
+.progress-card h3 { font-size: 1rem; margin-bottom: 10px; }
+.progress-bar-bg { background: rgba(255,255,255,0.2); height: 8px; border-radius: 5px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: #00b894; border-radius: 5px; }
+.progress-text { margin-top: 10px; font-size: 0.85rem; font-weight: bold; color: #00b894; }
+
+/* FEATURES GRID */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 25px;
+  margin-bottom: 40px;
+}
+
+.feature-card {
+  position: relative; background: white; border-radius: 20px;
+  padding: 30px 20px; text-align: center; cursor: pointer;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+  transition: transform 0.3s, box-shadow 0.3s;
+  overflow: hidden; border: 1px solid #f1f2f6;
+}
+.feature-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+
+/* Card Glow Effect */
+.card-bg-glow {
+  position: absolute; top: 0; left: 0; width: 100%; height: 5px;
+}
+
+.icon-circle {
+  width: 60px; height: 60px; border-radius: 50%;
+  margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 1.5rem; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.card-content h2 { font-size: 1.3rem; margin-bottom: 5px; color: #2d3436; }
+.card-content p { color: #b2bec3; font-size: 0.9rem; }
+
+/* NOTICE BOARD */
+.notice-section {
+  background: #fff; padding: 25px; border-radius: 20px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 1px solid #f1f2f6;
+}
+.section-title { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; font-size: 1.2rem; }
+.notice-board { display: flex; flex-direction: column; gap: 10px; }
+
+.notice-item {
+  background: #f8f9fa; padding: 15px; border-radius: 10px; border-left: 4px solid #f1c40f;
+  font-size: 0.95rem; color: #555; transition: 0.2s;
+}
+.notice-item:hover { background: #fffcf0; transform: translateX(5px); }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .hero-section { flex-direction: column; text-align: center; gap: 20px; }
+  .progress-card { width: 100%; }
+}
+/* --- SCAN BUTTON STYLE --- */
+.scan-btn {
+  width: 100%;
+  margin-top: 15px;
+  padding: 12px;
+  background: white;
+  color: #2c3e50;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.scan-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  background: #f8f9fa;
+  color: #000;
+}
+
+.scan-btn:active {
+  transform: scale(0.98);
+}

@@ -1,0 +1,127 @@
+/* --- FULL PAGE BACKGROUND (Dark Professional Theme) --- */
+.admin-login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #2c3e50, #000000); /* Dark Blue to Black */
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* --- MAIN CARD --- */
+.admin-login-card {
+  background: white;
+  padding: 40px;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  text-align: center;
+  width: 100%;
+  max-width: 350px;
+  animation: fadeIn 0.5s ease;
+}
+
+/* --- ADMIN ICON CIRCLE --- */
+.admin-icon-circle {
+  background: #2c3e50;
+  color: #d4af37; /* Gold Color */
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  font-size: 2rem;
+  margin: 0 auto 20px;
+  border: 3px solid #d4af37;
+}
+
+/* --- HEADINGS --- */
+h2 { 
+  color: #2c3e50; 
+  margin-bottom: 5px; 
+}
+
+.subtitle { 
+  color: #7f8c8d; 
+  font-size: 0.9rem; 
+  margin-bottom: 25px; 
+}
+
+/* --- INPUT FIELDS --- */
+.input-group {
+  position: relative; 
+  margin-bottom: 15px;
+}
+
+.input-icon {
+  position: absolute; 
+  left: 15px; 
+  top: 12px; 
+  color: #aaa;
+}
+
+.input-group input {
+  width: 100%; 
+  padding: 10px 10px 10px 40px; /* Icon ke liye jagah */
+  border: 1px solid #ddd; 
+  border-radius: 8px; 
+  outline: none; 
+  transition: 0.3s;
+  font-size: 1rem;
+}
+
+.input-group input:focus { 
+  border-color: #d4af37; /* Focus hone par Gold Border */
+}
+
+/* --- BUTTON --- */
+.login-btn {
+  width: 100%; 
+  background: #2c3e50; 
+  color: white; 
+  padding: 12px; 
+  border: none; 
+  border-radius: 8px; 
+  font-weight: bold; 
+  cursor: pointer; 
+  margin-top: 10px; 
+  transition: 0.3s;
+  font-size: 1rem;
+}
+
+.login-btn:hover { 
+  background: #34495e; 
+}
+
+.login-btn:disabled {
+  background: #95a5a6;
+  cursor: not-allowed;
+}
+
+/* --- 👇 NEW TOGGLE LINK STYLE (Iske liye update zaroori tha) 👇 --- */
+.toggle-link {
+  margin-top: 20px;
+  border-top: 1px solid #eee;
+  padding-top: 15px;
+}
+
+.toggle-link p {
+  color: #3498db;
+  cursor: pointer;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: 0.2s;
+  margin: 0;
+}
+
+.toggle-link p:hover {
+  color: #2c3e50;
+  text-decoration: underline;
+}
+
+/* --- ANIMATION --- */
+@keyframes fadeIn { 
+  from { opacity: 0; transform: translateY(-20px); } 
+  to { opacity: 1; transform: translateY(0); } 
+}

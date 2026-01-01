@@ -1,0 +1,154 @@
+/* --- Global & Background --- */
+.admin-wrapper {
+  min-height: 100vh;
+  background-color: #f3f4f6;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(74, 144, 226, 0.1) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(142, 68, 173, 0.1) 0px, transparent 50%);
+  font-family: 'Segoe UI', 'Roboto', Helvetica, Arial, sans-serif;
+}
+
+/* --- Premium Navbar --- */
+.admin-navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 30px; /* Padding thodi kam ki */
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.brand-section { display: flex; align-items: center; gap: 10px; }
+.logo-icon {
+  width: 35px; height: 35px; background: linear-gradient(135deg, #4a90e2, #0056b3);
+  color: white; border-radius: 8px; display: flex; justify-content: center; align-items: center;
+  font-weight: bold; font-size: 1.2rem;
+}
+.logo-text { font-size: 1.2rem; font-weight: 700; color: #333; }
+.pro-badge { background: #2d3436; color: #ffd700; font-size: 0.6rem; padding: 2px 5px; border-radius: 4px; vertical-align: middle; margin-left: 5px; }
+
+.nav-actions { display: flex; align-items: center; gap: 20px; }
+.nav-icon { font-size: 1.2rem; color: #636e72; cursor: pointer; transition: 0.3s; position: relative; }
+.nav-icon:hover { color: #4a90e2; transform: translateY(-2px); }
+
+.pulse-dot {
+  position: absolute; top: -2px; right: -2px; width: 6px; height: 6px;
+  background: #ff4757; border-radius: 50%; border: 2px solid white;
+}
+
+.profile-section {
+  display: flex; align-items: center; gap: 8px; cursor: pointer;
+  background: #f1f2f6; padding: 6px 12px; border-radius: 30px; transition: 0.3s;
+}
+.profile-section:hover { background: #dfe4ea; }
+.admin-name { font-weight: 600; font-size: 0.85rem; color: #2d3436; }
+.profile-icon { font-size: 1.6rem; color: #4a90e2; }
+
+/* --- Main Content --- */
+.admin-content { padding: 30px; max-width: 1400px; margin: 0 auto; }
+.page-header { margin-bottom: 30px; }
+.page-header h1 { font-size: 1.8rem; color: #2d3436; margin: 0; font-weight: 800; }
+.page-header p { color: #636e72; font-size: 1rem; margin-top: 5px; }
+
+/* --- VIP Grid (Compact Logic) --- */
+.vip-grid {
+  display: grid;
+  /* 👇 MAJOR CHANGE: Desktop par 4 columns fixed */
+  grid-template-columns: repeat(4, 1fr); 
+  gap: 20px; /* Gap kam kiya taaki fit ho */
+}
+
+/* Responsive: Chhoti screen par toote na */
+@media (max-width: 1024px) {
+  .vip-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .vip-grid { grid-template-columns: 1fr; }
+}
+
+.vip-card {
+  position: relative;
+  height: 220px; /* 👇 Height kam ki (pehle 250px thi) */
+  border-radius: 20px;
+  padding: 20px; /* 👇 Padding kam ki (pehle 30px thi) */
+  color: white;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.vip-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+}
+
+/* Gradients */
+.card-blue   { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+.card-purple { background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); }
+.card-gold   { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); }
+.card-teal   { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+
+/* Card Inner Content */
+.card-content { 
+  position: relative; z-index: 2; height: 100%; 
+  display: flex; flex-direction: column; justify-content: space-between; 
+}
+
+.icon-box {
+  width: 40px; height: 40px; /* Icon box chhota kiya */
+  background: rgba(255,255,255,0.2);
+  backdrop-filter: blur(5px); border-radius: 10px;
+  display: flex; justify-content: center; align-items: center; font-size: 1.2rem;
+}
+
+/* Fonts Size Adjusted */
+.vip-card h2 { font-size: 1.3rem; margin: 12px 0 5px 0; font-weight: 700; } /* Font chhota kiya */
+.vip-card p { font-size: 0.85rem; opacity: 0.9; margin: 0; font-weight: 500; line-height: 1.4; }
+
+/* Background Watermark Icon */
+.card-bg-icon {
+  position: absolute; right: -15px; bottom: -15px;
+  font-size: 8rem; /* Background icon thoda chhota kiya */
+  opacity: 0.15; transform: rotate(-15deg);
+  z-index: 1; transition: 0.4s;
+}
+.vip-card:hover .card-bg-icon { transform: rotate(0deg) scale(1.1); opacity: 0.2; }
+
+/* Button inside card */
+.vip-btn {
+  width: fit-content;
+  background: rgba(255,255,255,0.9);
+  color: #333;
+  border: none;
+  padding: 8px 16px; /* Button padding adjust ki */
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  margin-top: 10px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.vip-btn:hover { background: white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+/* --- Navigation Profile Image --- */
+.nav-profile-img {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #d4af37; /* Gold border */
+  cursor: pointer;
+}
+/* Add this to AdminDashboard.css */
+.card-red { 
+  background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%); 
+}
+.card-red .icon-box {
+  background: rgba(255,255,255,0.2);
+}

@@ -1,0 +1,109 @@
+:root {
+  --nav-bg: rgba(255, 255, 255, 0.95);
+  --accent-color: #3498db;
+  --danger-color: #e74c3c;
+}
+
+/* --- MAIN NAVBAR --- */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--nav-bg);
+  backdrop-filter: blur(10px);
+  padding: 0 30px;
+  height: 70px; /* Fixed Height */
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  border-bottom: 1px solid #eee;
+}
+
+/* --- LOGO --- */
+.logo {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 1.4rem; font-weight: 800; color: #333;
+  cursor: pointer;
+}
+.logo-icon { color: var(--accent-color); font-size: 1.8rem; }
+
+/* --- LINKS --- */
+.nav-links {
+  display: flex; align-items: center; gap: 15px;
+}
+
+/* --- ITEMS --- */
+.nav-item {
+  text-decoration: none;
+  color: #555;
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 14px;
+  border-radius: 50px;
+  transition: 0.3s;
+  cursor: pointer;
+  border: 1px solid transparent; /* Smooth hover border */
+}
+
+.nav-item:hover {
+  background: rgba(52, 152, 219, 0.1);
+  color: var(--accent-color);
+}
+
+.nav-item.active {
+  background: var(--accent-color);
+  color: white;
+  box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
+}
+
+/* Logout Special Style */
+.logout-btn {
+  color: var(--danger-color);
+}
+.logout-btn:hover {
+  background: #fff5f5;
+  color: #c0392b;
+  border-color: #fadbd8;
+}
+
+/* --- MOBILE --- */
+.hamburger, .mobile-close, .overlay { display: none; }
+
+@media (max-width: 768px) {
+  .hamburger { display: block; font-size: 1.5rem; cursor: pointer; color: #333; }
+
+  .nav-links {
+    position: fixed; top: 0; right: -100%;
+    width: 250px; height: 100vh;
+    background: white;
+    flex-direction: column;
+    padding-top: 60px;
+    box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+    transition: 0.3s;
+    z-index: 1002;
+    align-items: flex-start; /* Left Align */
+  }
+
+  .nav-links.mobile-open { right: 0; }
+
+  .nav-item { width: 85%; margin: 8px auto; padding: 12px; font-size: 1rem; }
+  
+  .mobile-close {
+    display: block; position: absolute; top: 20px; right: 20px; font-size: 1.5rem;
+  }
+  
+  .overlay {
+    display: block; position: fixed; top: 0; left: 0;
+    width: 100%; height: 100vh; background: rgba(0,0,0,0.5); z-index: 1001;
+  }
+}
+/* Navbar Profile Image Styling */
+.nav-profile-pic {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%; /* Gol karega */
+  object-fit: cover;  /* Photo chipkegi nahi */
+  border: 2px solid #3498db; /* Blue border */
+}
