@@ -8,82 +8,93 @@ import "./StudentScanner.css";
 
 const StudentScanner = () => {
   const navigate = useNavigate();
-  const [scanResult, setScanResult] = useState(null);
   const [message, setMessage] = useState("Scan the QR Code shown by Teacher");
   const [loading, setLoading] = useState(false);
   const [isScanning, setIsScanning] = useState(true);
 
-  // 📸 Handle Scan (FIXED VERSION)
+  // 📸 DEBUG SCAN HANDLE
   const handleScan = async (data) => {
-    // Agar scanning band hai ya data null hai, to kuch mat karo
-    if (!isScanning || !data) return;
+    // 1. Agar data null hai (camera hawa mein hai), to ignore karo
+    if (!data) return;
 
-    // Library kabhi data.text deti hai, kabhi direct string. Dono handle karein:
-    const scannedText = data?.text || data; 
+    // 2. Agar hum pehle hi process kar rahe hain, to ruk jao
+    if (!isScanning) return;
 
-    if (scannedText) {
-      console.log("Scanned Data:", scannedText); // Debugging ke liye
-      setIsScanning(false); // Camera roko
-      setScanResult(scannedText);
-      await markAttendance(scannedText);
+    // 🛑 STOP SCANNING IMMEDIATELY
+    setIsScanning(false);
+
+    // 🔍 DEBUG ALERT: Mobile screen par dikhao ki kya scan hua
+    // (Isse hume pata chalega ki code sahi scan ho raha hai ya nahi)
+    const rawText = data?.text || data; // Library kabhi object deti hai kabhi text
+    // alert(`🔍 DEBUG: Scanned! \nData: ${rawText}`); 
+
+    if (rawText) {
+      await markAttendance(rawText);
+    } else {
+        alert("❌ Error: Empty Data Scanned");
+        setIsScanning(true); // Retry
     }
   };
 
   const handleError = (err) => {
     console.error("Camera Error:", err);
-    setMessage("❌ Camera Error: Check permissions.");
+    alert(`📷 Camera Error: ${err.message || err}`);
+    setMessage("❌ Camera Error: Please allow permissions.");
   };
 
-  // 📝 ATTENDANCE LOGIC (SAFE VERSION)
+  // 📝 ATTENDANCE LOGIC
   const markAttendance = async (qrDataString) => {
     setLoading(true);
     const user = auth.currentUser;
 
     if (!user) {
-      alert("Please Login First!");
+      alert("⚠️ Error: User not logged in!");
       navigate("/");
       return;
     }
 
     try {
-      // 🛡️ SECURITY CHECK: JSON.parse fail na ho
+      // 1. Parsing Try Karo
       let qrData;
       try {
         qrData = JSON.parse(qrDataString);
       } catch (e) {
-        console.error("JSON Error:", e);
-        setMessage("❌ Invalid QR Code! This is not a class QR.");
+        alert(`❌ JSON Error: QR Code sahi format mein nahi hai.\nScanned: ${qrDataString}`);
         setLoading(false);
+        setIsScanning(true); // Wapas scanning chalu karo
         return;
       }
 
-      // Format check: Kya isme subjectId hai?
+      // 2. Data Check
       if (!qrData.subjectId || !qrData.date) {
-        setMessage("❌ Wrong QR Code scanned.");
+        alert("❌ Invalid QR: Isme Subject ID nahi hai.");
         setLoading(false);
+        setIsScanning(true);
         return;
       }
 
-      // 2. Date Check
+      // 3. Date Check
       const today = new Date().toLocaleDateString();
       if (qrData.date !== today) {
-        setMessage("❌ Expired QR: This is an old code.");
+        alert(`❌ Expired QR!\nQR Date: ${qrData.date}\nToday: ${today}`);
         setLoading(false);
+        setIsScanning(true);
         return;
       }
 
-      // 3. Duplicate Check
+      // 4. Duplicate Check
       const attendanceId = `${qrData.subjectId}_${today.replace(/\//g, "-")}_${user.uid}`;
       const attendanceRef = doc(db, "attendance_records", attendanceId);
 
       const docSnap = await getDoc(attendanceRef);
       if (docSnap.exists()) {
-        setMessage(`⚠️ Already Present: ${qrData.subjectName}`);
+        alert(`⚠️ Already Present!\nAapne ${qrData.subjectName} ki attendance pehle hi laga di hai.`);
+        setMessage(`⚠️ Already Marked: ${qrData.subjectName}`);
         setLoading(false);
-        return;
+        return; 
       }
 
-      // 4. Save to Firebase
+      // 5. Firebase Save
       await setDoc(attendanceRef, {
         studentId: user.uid,
         studentName: user.displayName || "Student",
@@ -94,32 +105,32 @@ const StudentScanner = () => {
         status: "Present"
       });
 
+      alert(`✅ SUCCESS!\nAttendance Marked for ${qrData.subjectName}`);
       setMessage(`✅ Attendance Marked: ${qrData.subjectName}`);
 
     } catch (error) {
       console.error("Firebase Error:", error);
+      alert("❌ Firebase Error: " + error.message);
       setMessage("❌ Error saving attendance.");
+      setIsScanning(true);
     } finally {
       setLoading(false);
     }
   };
 
-  // Retry Function
+  // Retry Button Logic
   const handleRetry = () => {
-    setScanResult(null);
     setMessage("Scan the QR Code shown by Teacher");
     setIsScanning(true);
   };
 
   return (
     <div className="scanner-container">
-      {/* Header */}
       <header className="scanner-header">
         <button onClick={() => navigate(-1)} className="back-btn"><FaArrowLeft /></button>
         <h3>Scan Attendance</h3>
       </header>
 
-      {/* Camera Area */}
       <div className="camera-box">
         {isScanning ? (
           <QrScanner
@@ -127,27 +138,22 @@ const StudentScanner = () => {
             onError={handleError}
             onScan={handleScan}
             style={{ width: "100%", height: "100%", objectFit: "cover" }}
-            constraints={{
-                video: { facingMode: "environment" } // Back Camera use karne ki koshish karega
-            }}
+            // Constraints hata diye hain taaki default camera le (safe mode)
           />
         ) : (
           <div className="scan-stopped">
             <FaCamera size={50} color="#ccc" />
-            <p>Scanning Paused</p>
+            <p>Processing / Paused</p>
           </div>
         )}
-        
         <div className="scan-overlay"></div>
       </div>
 
-      {/* Result Message */}
       <div className={`scan-result ${message.includes("✅") ? "success" : message.includes("❌") ? "error" : "status"}`}>
         <p style={{fontWeight: "bold", fontSize: "1.1rem"}}>
             {loading ? "Processing..." : message}
         </p>
         
-        {/* Retry Button */}
         {!isScanning && (
            <button className="retry-btn" onClick={handleRetry}>
              <FaRedo /> Scan Again
