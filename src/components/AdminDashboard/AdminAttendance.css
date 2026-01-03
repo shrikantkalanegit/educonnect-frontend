@@ -182,3 +182,56 @@
     from { transform: scale(0.9); opacity: 0; }
     to { transform: scale(1); opacity: 1; }
 }
+/* --- LIVE ATTENDANCE LIST STYLES --- */
+.attendees-section {
+    max-width: 800px;
+    margin: 40px auto;
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.list-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 20px; border-bottom: 2px solid #f4f6f9; padding-bottom: 10px;
+}
+
+.list-header h3 { margin: 0; color: #34495e; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
+
+.live-badge {
+    background: #e74c3c; color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: bold;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.no-data {
+    text-align: center; color: #95a5a6; font-style: italic; padding: 20px;
+}
+
+/* Table Styles */
+.table-responsive { overflow-x: auto; }
+
+.attendance-table {
+    width: 100%; border-collapse: collapse; margin-top: 10px;
+}
+
+.attendance-table th, .attendance-table td {
+    padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee;
+}
+
+.attendance-table th {
+    background: #f8f9fa; color: #7f8c8d; font-weight: 600; font-size: 0.9rem;
+}
+
+.attendance-table tr:hover { background: #f1f2f6; }
+
+.status-badge {
+    padding: 4px 10px; border-radius: 5px; font-size: 0.8rem; font-weight: bold;
+}
+.status-badge.present { background: #d4edda; color: #155724; }
