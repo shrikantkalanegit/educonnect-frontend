@@ -1,45 +1,34 @@
 import React, { useState } from "react";
-import QrScanner from "react-qr-scanner"; 
+import { Scanner } from "@yudiel/react-qr-scanner"; // 👈 New Modern Library
 import { useNavigate } from "react-router-dom";
 import { db, auth } from "../../firebase";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
-import { FaArrowLeft, FaCamera, FaRedo } from "react-icons/fa";
+import { FaArrowLeft, FaRedo } from "react-icons/fa";
 import "./StudentScanner.css"; 
 
 const StudentScanner = () => {
   const navigate = useNavigate();
   const [message, setMessage] = useState("Scan the QR Code shown by Teacher");
   const [loading, setLoading] = useState(false);
-  const [isScanning, setIsScanning] = useState(true);
+  const [scanActive, setScanActive] = useState(true);
 
-  // 📸 DEBUG SCAN HANDLE
-  const handleScan = async (data) => {
-    // 1. Agar data null hai (camera hawa mein hai), to ignore karo
-    if (!data) return;
-
-    // 2. Agar hum pehle hi process kar rahe hain, to ruk jao
-    if (!isScanning) return;
-
-    // 🛑 STOP SCANNING IMMEDIATELY
-    setIsScanning(false);
-
-    // 🔍 DEBUG ALERT: Mobile screen par dikhao ki kya scan hua
-    // (Isse hume pata chalega ki code sahi scan ho raha hai ya nahi)
-    const rawText = data?.text || data; // Library kabhi object deti hai kabhi text
-    // alert(`🔍 DEBUG: Scanned! \nData: ${rawText}`); 
-
-    if (rawText) {
-      await markAttendance(rawText);
-    } else {
-        alert("❌ Error: Empty Data Scanned");
-        setIsScanning(true); // Retry
+  // 📸 NEW SCAN LOGIC
+  const handleScan = async (detectedCodes) => {
+    // Library returns an array, we take the first one
+    if (!detectedCodes || detectedCodes.length === 0) return;
+    
+    const rawValue = detectedCodes[0].rawValue;
+    
+    if (rawValue && scanActive) {
+      setScanActive(false); // Stop scanning immediately
+      // alert(`🔍 DEBUG: Scanned! \n${rawValue}`); // Testing ke liye
+      await markAttendance(rawValue);
     }
   };
 
-  const handleError = (err) => {
-    console.error("Camera Error:", err);
-    alert(`📷 Camera Error: ${err.message || err}`);
-    setMessage("❌ Camera Error: Please allow permissions.");
+  const handleError = (error) => {
+    console.error(error);
+    setMessage("❌ Camera Error: Check Permissions");
   };
 
   // 📝 ATTENDANCE LOGIC
@@ -48,53 +37,52 @@ const StudentScanner = () => {
     const user = auth.currentUser;
 
     if (!user) {
-      alert("⚠️ Error: User not logged in!");
+      alert("Please Login First!");
       navigate("/");
       return;
     }
 
     try {
-      // 1. Parsing Try Karo
+      // 1. Parse JSON
       let qrData;
       try {
         qrData = JSON.parse(qrDataString);
       } catch (e) {
-        alert(`❌ JSON Error: QR Code sahi format mein nahi hai.\nScanned: ${qrDataString}`);
+        alert("❌ Invalid QR Code (Not JSON)");
+        setScanActive(true); // Retry
         setLoading(false);
-        setIsScanning(true); // Wapas scanning chalu karo
         return;
       }
 
-      // 2. Data Check
-      if (!qrData.subjectId || !qrData.date) {
-        alert("❌ Invalid QR: Isme Subject ID nahi hai.");
-        setLoading(false);
-        setIsScanning(true);
-        return;
-      }
-
-      // 3. Date Check
+      // 2. Data Validation
       const today = new Date().toLocaleDateString();
-      if (qrData.date !== today) {
-        alert(`❌ Expired QR!\nQR Date: ${qrData.date}\nToday: ${today}`);
+      if (!qrData.subjectId || !qrData.date) {
+        alert("❌ Wrong QR Code");
+        setScanActive(true);
         setLoading(false);
-        setIsScanning(true);
         return;
       }
 
-      // 4. Duplicate Check
+      if (qrData.date !== today) {
+        alert("❌ QR Code Expired (Old Date)");
+        setScanActive(true);
+        setLoading(false);
+        return;
+      }
+
+      // 3. Check Duplicate
       const attendanceId = `${qrData.subjectId}_${today.replace(/\//g, "-")}_${user.uid}`;
       const attendanceRef = doc(db, "attendance_records", attendanceId);
-
       const docSnap = await getDoc(attendanceRef);
+
       if (docSnap.exists()) {
-        alert(`⚠️ Already Present!\nAapne ${qrData.subjectName} ki attendance pehle hi laga di hai.`);
-        setMessage(`⚠️ Already Marked: ${qrData.subjectName}`);
+        setMessage(`⚠️ Already Present: ${qrData.subjectName}`);
+        alert(`⚠️ You have already marked attendance for ${qrData.subjectName}`);
         setLoading(false);
-        return; 
+        return;
       }
 
-      // 5. Firebase Save
+      // 4. Save to Firebase
       await setDoc(attendanceRef, {
         studentId: user.uid,
         studentName: user.displayName || "Student",
@@ -105,23 +93,16 @@ const StudentScanner = () => {
         status: "Present"
       });
 
-      alert(`✅ SUCCESS!\nAttendance Marked for ${qrData.subjectName}`);
-      setMessage(`✅ Attendance Marked: ${qrData.subjectName}`);
+      setMessage(`✅ Success! Marked for ${qrData.subjectName}`);
+      alert(`✅ ATTENDANCE MARKED!\nSubject: ${qrData.subjectName}`);
 
     } catch (error) {
-      console.error("Firebase Error:", error);
-      alert("❌ Firebase Error: " + error.message);
-      setMessage("❌ Error saving attendance.");
-      setIsScanning(true);
+      console.error(error);
+      alert("Error: " + error.message);
+      setScanActive(true);
     } finally {
       setLoading(false);
     }
-  };
-
-  // Retry Button Logic
-  const handleRetry = () => {
-    setMessage("Scan the QR Code shown by Teacher");
-    setIsScanning(true);
   };
 
   return (
@@ -132,30 +113,32 @@ const StudentScanner = () => {
       </header>
 
       <div className="camera-box">
-        {isScanning ? (
-          <QrScanner
-            delay={300}
-            onError={handleError}
-            onScan={handleScan}
-            style={{ width: "100%", height: "100%", objectFit: "cover" }}
-            // Constraints hata diye hain taaki default camera le (safe mode)
-          />
+        {scanActive ? (
+            <div className="scanner-wrapper">
+                <Scanner 
+                    onScan={handleScan} 
+                    onError={handleError}
+                    components={{
+                        audio: false, // Beep sound off
+                        finder: true  // Red box dikhayega
+                    }}
+                    constraints={{
+                        facingMode: 'environment' // Back Camera
+                    }}
+                />
+            </div>
         ) : (
           <div className="scan-stopped">
-            <FaCamera size={50} color="#ccc" />
-            <p>Processing / Paused</p>
+            <p>✅ Scanning Complete</p>
           </div>
         )}
-        <div className="scan-overlay"></div>
       </div>
 
-      <div className={`scan-result ${message.includes("✅") ? "success" : message.includes("❌") ? "error" : "status"}`}>
-        <p style={{fontWeight: "bold", fontSize: "1.1rem"}}>
-            {loading ? "Processing..." : message}
-        </p>
+      <div className={`scan-result ${message.includes("Success") || message.includes("✅") ? "success" : "status"}`}>
+        <p>{loading ? "Processing..." : message}</p>
         
-        {!isScanning && (
-           <button className="retry-btn" onClick={handleRetry}>
+        {!scanActive && (
+           <button className="retry-btn" onClick={() => { setScanActive(true); setMessage("Scanning..."); }}>
              <FaRedo /> Scan Again
            </button>
         )}

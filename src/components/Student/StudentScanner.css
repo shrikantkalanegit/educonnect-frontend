@@ -1,95 +1,62 @@
 .scanner-container {
-  height: 100vh;
-  background: black;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  color: white;
+    height: 100vh;
+    background: black;
+    display: flex;
+    flex-direction: column;
+    color: white;
 }
 
 .scanner-header {
-  width: 100%;
-  padding: 15px;
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  background: rgba(0,0,0,0.5);
-  position: absolute;
-  top: 0;
-  z-index: 10;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: #222;
+    z-index: 10;
 }
 
 .back-btn {
-  background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer;
+    background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer;
 }
 
-/* Camera Box */
+/* Camera Area */
 .camera-box {
-  width: 100%;
-  flex: 1;
-  position: relative;
-  overflow: hidden;
-  display: flex; align-items: center; justify-content: center;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+    overflow: hidden;
+    position: relative;
 }
 
-/* Red Line Animation */
-.scan-overlay {
-  position: absolute;
-  top: 30%;
-  left: 10%;
-  width: 80%;
-  height: 40%;
-  border: 2px solid rgba(255, 255, 255, 0.6);
-  border-radius: 10px;
-  box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.5); /* Dim background */
-}
-
-.scan-overlay::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; width: 100%; height: 2px;
-  background: #00ff00; /* Green Laser Line */
-  box-shadow: 0 0 4px #00ff00;
-  animation: scanAnim 2s infinite linear;
-}
-
-@keyframes scanAnim {
-  0% { top: 0; }
-  50% { top: 100%; }
-  100% { top: 0; }
+.scanner-wrapper {
+    width: 100%;
+    height: 100%;
 }
 
 /* Result Box */
 .scan-result {
-  width: 100%;
-  padding: 20px;
-  background: #1e1e1e;
-  text-align: center;
-  border-top-left-radius: 20px;
-  border-top-right-radius: 20px;
-  min-height: 150px;
+    padding: 20px;
+    background: #1e1e1e;
+    text-align: center;
+    min-height: 120px;
+    border-top: 1px solid #333;
 }
 
 .scan-result.success {
-  background: #d4edda;
-  color: #155724;
-}
-
-.scan-result.status {
-  color: #bbb;
+    background: #27ae60;
+    color: white;
 }
 
 .retry-btn {
-  background: #3498db;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 50px;
-  margin-top: 15px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.scan-stopped {
-    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    background: white;
+    color: #333;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 50px;
+    margin-top: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 8px;
 }
