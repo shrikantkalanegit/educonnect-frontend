@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { db } from "../../firebase"; 
 import { collection, getDocs, query, where, onSnapshot } from "firebase/firestore"; 
-import { FaQrcode, FaBook, FaTimes, FaArrowLeft, FaUserCheck } from "react-icons/fa";
+import { FaQrcode, FaBook, FaTimes, FaArrowLeft, FaUserCheck, FaFileExcel } from "react-icons/fa"; // 👈 Icon added
 import QRCode from "react-qr-code"; 
+import * as XLSX from "xlsx"; // 👈 Excel Library
 import "./AdminAttendance.css"; 
 
 const AdminAttendance = () => {
@@ -15,7 +16,7 @@ const AdminAttendance = () => {
   // QR & Attendance States
   const [qrCodeValue, setQrCodeValue] = useState("");
   const [showQR, setShowQR] = useState(false);
-  const [attendees, setAttendees] = useState([]); // 👈 Isme students ki list aayegi
+  const [attendees, setAttendees] = useState([]);
 
   // 1. Fetch Subjects
   useEffect(() => {
@@ -36,35 +37,73 @@ const AdminAttendance = () => {
     fetchSubjects();
   }, []);
 
-  // 2. 🟢 LIVE ATTENDANCE LISTENER (Jaise hi subject select ho)
+  // 2. LIVE ATTENDANCE LISTENER
   useEffect(() => {
     if (!selectedSubject) return;
 
     const today = new Date().toLocaleDateString();
     
-    // Query: Attendance collection mein jao -> Subject ID match karo -> Date match karo
+    // Sirf aaj ka data dikhane ke liye (Live List)
     const q = query(
       collection(db, "attendance_records"),
       where("subjectId", "==", selectedSubject),
       where("date", "==", today)
     );
 
-    // Real-time listener
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const studentList = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
-      
-      // Sort by time (Latest first)
-      // Note: Hum JS mein sort kar rahe hain taaki Firebase Index error na aaye
       studentList.sort((a, b) => b.timestamp - a.timestamp);
-      
       setAttendees(studentList);
     });
 
-    return () => unsubscribe(); // Cleanup
+    return () => unsubscribe(); 
   }, [selectedSubject]);
+
+  // 3. 📥 DOWNLOAD REPORT FUNCTION (Excel)
+  const handleDownloadReport = async () => {
+    if (!selectedSubject) return;
+    
+    const subjectName = subjects.find(s => s.id === selectedSubject)?.name || "Subject";
+    
+    try {
+        // Hum poora data fetch karenge (sirf aaj ka nahi, balki saara)
+        const q = query(
+            collection(db, "attendance_records"),
+            where("subjectId", "==", selectedSubject)
+        );
+        
+        const querySnapshot = await getDocs(q);
+        const data = querySnapshot.docs.map(doc => {
+            const d = doc.data();
+            return {
+                "Student Name": d.studentName,
+                "Date": d.date,
+                "Time": d.timestamp?.seconds ? new Date(d.timestamp.seconds * 1000).toLocaleTimeString() : "N/A",
+                "Status": "Present"
+            };
+        });
+
+        if (data.length === 0) {
+            alert("No attendance records found to download.");
+            return;
+        }
+
+        // Excel Sheet Banana
+        const worksheet = XLSX.utils.json_to_sheet(data);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Attendance Report");
+        
+        // File Save Karna
+        XLSX.writeFile(workbook, `${subjectName}_Attendance_Report.xlsx`);
+        
+    } catch (error) {
+        console.error("Error downloading report:", error);
+        alert("Error downloading report");
+    }
+  };
 
   const handleGenerateQR = () => {
     if(!selectedSubject) return;
@@ -99,11 +138,10 @@ const AdminAttendance = () => {
       
       {loading && <p style={{textAlign:"center"}}>Loading Subjects...</p>}
 
-      {/* SECTION 1: QR GENERATOR */}
       {!loading && !showQR && (
         <div className="attendance-card highlight-card">
             <h3><FaBook /> Select Subject</h3>
-            <p>Choose a subject to see today's attendance & Generate QR.</p>
+            <p>Choose a subject to manage attendance.</p>
             
             <select 
                 className="subject-dropdown"
@@ -118,18 +156,30 @@ const AdminAttendance = () => {
                 ))}
             </select>
 
-            <button 
-                className="qr-btn" 
-                onClick={handleGenerateQR}
-                disabled={!selectedSubject}
-            >
-                <FaQrcode style={{marginRight: "8px"}}/> 
-                Generate Live QR
-            </button>
+            {/* 👇 Buttons Row */}
+            <div style={{display: 'flex', gap: '10px'}}>
+                <button 
+                    className="qr-btn" 
+                    onClick={handleGenerateQR}
+                    disabled={!selectedSubject}
+                >
+                    <FaQrcode style={{marginRight: "8px"}}/> 
+                    Generate QR
+                </button>
+
+                <button 
+                    className="qr-btn"
+                    style={{background: "#27ae60"}} // Green Color
+                    onClick={handleDownloadReport}
+                    disabled={!selectedSubject}
+                >
+                    <FaFileExcel style={{marginRight: "8px"}}/> 
+                    Report
+                </button>
+            </div>
         </div>
       )}
 
-      {/* SECTION 2: QR DISPLAY */}
       {showQR && (
         <div className="attendance-card qr-display-card">
             <div className="qr-header">
@@ -153,16 +203,16 @@ const AdminAttendance = () => {
         </div>
       )}
 
-      {/* SECTION 3: 📋 LIVE STUDENT LIST */}
+      {/* LIVE LIST */}
       {selectedSubject && (
         <div className="attendees-section">
             <div className="list-header">
-                <h3><FaUserCheck /> Live Attendance ({attendees.length})</h3>
-                <span className="live-badge">● Live Updates</span>
+                <h3><FaUserCheck /> Live Attendance (Today)</h3>
+                <span className="live-badge">● Live</span>
             </div>
 
             {attendees.length === 0 ? (
-                <p className="no-data">No students have scanned yet.</p>
+                <p className="no-data">No students have scanned yet today.</p>
             ) : (
                 <div className="table-responsive">
                     <table className="attendance-table">
