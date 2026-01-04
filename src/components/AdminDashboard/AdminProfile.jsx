@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "./AdminProfile.css";
 import { 
-  FaUserShield, FaEdit, FaSave, FaSignOutAlt, FaUsers, 
-  FaKey, FaBell, FaChevronRight, FaCamera, FaUserPlus, FaArrowLeft, FaTimes 
+  FaUserShield, FaEdit, FaSignOutAlt, FaUsers, 
+  FaKey, FaUserPlus, FaArrowLeft, FaTimes, FaCamera, FaCheckCircle 
 } from "react-icons/fa";
 
 import { auth, db } from "../../firebase";
@@ -16,16 +16,13 @@ const AdminProfile = () => {
   
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
-  
-  // Modal State
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [newAdminEmail, setNewAdminEmail] = useState("");
   const [newAdminName, setNewAdminName] = useState("");
 
   const [adminData, setAdminData] = useState({
-    name: "Admin User", 
-    designation: "Head of Department", 
-    phone: "+91 00000 00000", 
+    name: "Admin", 
+    designation: "Faculty", 
     profilePic: ""
   });
 
@@ -33,7 +30,7 @@ const AdminProfile = () => {
   const [editedData, setEditedData] = useState({});
   const [studentCount, setStudentCount] = useState(0);
 
-  // 👇 Yahan Maine Correction Kiya Hai (Aapka Sahi Preset)
+  // CLOUDINARY CONFIG
   const CLOUD_NAME = "dpfz1gq4y"; 
   const UPLOAD_PRESET = "ml_default"; 
 
@@ -69,198 +66,136 @@ const AdminProfile = () => {
     } catch (err) { setStudentCount(0); }
   };
 
-  // 📸 Image Upload Logic (Updated)
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
     setUploading(true);
-
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("upload_preset", UPLOAD_PRESET); // ✅ Ab ye sahi 'ml_default' use karega
+    formData.append("upload_preset", UPLOAD_PRESET); 
     formData.append("cloud_name", CLOUD_NAME);
 
     try {
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { 
-        method: "POST", 
-        body: formData 
-      });
-      
-      if (!res.ok) throw new Error("Upload Failed");
-
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: "POST", body: formData });
       const data = await res.json();
-      
       if (data.secure_url) {
         const user = auth.currentUser;
-        if (user) {
-          // Firestore update
-          await setDoc(doc(db, "admins", user.uid), { profilePic: data.secure_url }, { merge: true });
-          
-          // Local State update
-          setAdminData(prev => ({ ...prev, profilePic: data.secure_url }));
-          setEditedData(prev => ({ ...prev, profilePic: data.secure_url }));
-          
-          alert("✅ Profile Photo Updated!");
-        }
+        await setDoc(doc(db, "admins", user.uid), { profilePic: data.secure_url }, { merge: true });
+        setAdminData(prev => ({ ...prev, profilePic: data.secure_url }));
       }
-    } catch (error) { 
-        console.error(error);
-        alert("❌ Photo upload failed. Check internet or Cloudinary settings."); 
-    } finally { 
-        setUploading(false); 
-    }
+    } catch (error) { alert("Upload Failed"); } 
+    finally { setUploading(false); }
   };
 
   const handleSave = async () => {
     const user = auth.currentUser;
     if (!user) return;
-    try {
-      await setDoc(doc(db, "admins", user.uid), editedData, { merge: true });
-      setAdminData(editedData);
-      setIsEditing(false);
-      alert("✅ Profile Updated!");
-    } catch (error) { alert("❌ Error saving profile."); }
-  };
-
-  const handleAddAdminSubmit = async (e) => {
-    e.preventDefault();
-    if(!newAdminEmail || !newAdminName) return;
-
-    try {
-      await setDoc(doc(db, "allowed_admins", newAdminEmail), {
-        email: newAdminEmail,
-        name: newAdminName,
-        role: "admin",
-        addedBy: adminData.name,
-        date: new Date().toISOString()
-      });
-      alert(`✅ Invitation Sent!\n\n${newAdminName} can now SignUp as Admin.`);
-      setShowAdminModal(false);
-      setNewAdminEmail("");
-      setNewAdminName("");
-    } catch (error) {
-      console.error(error);
-      alert("❌ Failed: " + error.message);
-    }
+    await setDoc(doc(db, "admins", user.uid), editedData, { merge: true });
+    setAdminData(editedData);
+    setIsEditing(false);
   };
 
   const handleLogout = async () => {
-    if (window.confirm("Are you sure you want to Logout?")) {
+    if (window.confirm("Logout?")) {
       await signOut(auth);
       navigate("/");
     }
   };
 
-  const handleResetPassword = async () => {
-    const email = auth.currentUser?.email;
-    if (email) {
-      await sendPasswordResetEmail(auth, email);
-      alert(`📧 Reset link sent to ${email}`);
-    }
+  const handleAddAdminSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await setDoc(doc(db, "allowed_admins", newAdminEmail), {
+        email: newAdminEmail, name: newAdminName, role: "admin", date: new Date().toISOString()
+      });
+      alert("Invitation Sent!");
+      setShowAdminModal(false);
+    } catch (error) { alert("Error: " + error.message); }
   };
 
-  if (loading) return <div className="admin-loading">Loading Profile...</div>;
+  if (loading) return <div className="loading-screen">Loading...</div>;
 
   return (
-    <div className="profile-container">
-      <header className="profile-top-bar">
-        {/* Back Button */}
-        <button className="back-btn-circle" onClick={() => navigate('/admin-dashboard')}>
-            <FaArrowLeft />
-        </button>
-        <h3>Admin Profile</h3>
+    <div className="insta-container">
+      {/* 1. TOP BAR */}
+      <header className="insta-header">
+        <button onClick={() => navigate('/admin-dashboard')}><FaArrowLeft /></button>
+        <h3>{adminData.name || "admin_user"}</h3>
+        <div style={{width: 24}}></div> {/* Spacer for alignment */}
       </header>
-      
-      {/* SECTION A: CARD */}
-      <div className="profile-header-card">
-        <div className="profile-avatar-wrapper">
-          <div className="profile-avatar">
-            {adminData.profilePic ? (
-                <img src={adminData.profilePic} alt="Profile" />
-            ) : (
-                <FaUserShield />
-            )}
+
+      {/* 2. PROFILE HEADER SECTION */}
+      <div className="insta-profile-section">
+        <div className="insta-row">
+          {/* Avatar (Left) */}
+          <div className="insta-avatar" onClick={() => fileInputRef.current.click()}>
+            {adminData.profilePic ? <img src={adminData.profilePic} alt="profile" /> : <FaUserShield className="default-icon"/>}
+            <div className="plus-icon"><FaCamera /></div>
+            <input type="file" ref={fileInputRef} hidden onChange={handleImageChange} />
           </div>
-          {/* Camera Icon triggers hidden input */}
-          <div className="camera-btn" onClick={() => fileInputRef.current.click()}>
-            <FaCamera />
-          </div>
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            hidden 
-            accept="image/*" 
-            onChange={handleImageChange} 
-          />
-        </div>
-        
-        <div className="profile-info">
-          {isEditing ? (
-            <div className="edit-form">
-              <input 
-                type="text" 
-                value={editedData.name} 
-                onChange={(e) => setEditedData({...editedData, name: e.target.value})} 
-                placeholder="Enter Name" 
-              />
-              <input 
-                type="text" 
-                value={editedData.designation} 
-                onChange={(e) => setEditedData({...editedData, designation: e.target.value})} 
-                placeholder="Designation" 
-              />
+
+          {/* Stats (Right) */}
+          <div className="insta-stats">
+            <div className="stat-item">
+              <span className="stat-num">{studentCount}</span>
+              <span className="stat-label">Students</span>
             </div>
-          ) : (
-            <>
-              <h2>{adminData.name || "Admin"}</h2>
-              <p>{adminData.designation || "Faculty Member"}</p>
-              {uploading && <small style={{color:'#f1c40f'}}>Uploading Photo...</small>}
-            </>
-          )}
+            <div className="stat-item">
+              <span className="stat-num" style={{color:'#2ecc71'}}>Active</span>
+              <span className="stat-label">System</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-num">Admin</span>
+              <span className="stat-label">Role</span>
+            </div>
+          </div>
         </div>
 
-        <button className="edit-btn" onClick={() => isEditing ? handleSave() : setIsEditing(true)}>
-          {isEditing ? <FaSave /> : <FaEdit />}
-        </button>
+        {/* Bio Section */}
+        <div className="insta-bio">
+            {isEditing ? (
+                <>
+                    <input className="edit-input" value={editedData.name} onChange={e => setEditedData({...editedData, name: e.target.value})} placeholder="Name" />
+                    <input className="edit-input" value={editedData.designation} onChange={e => setEditedData({...editedData, designation: e.target.value})} placeholder="Designation" />
+                </>
+            ) : (
+                <>
+                    <h4>{adminData.name}</h4>
+                    <p>{adminData.designation}</p>
+                    <p className="bio-link">educonnect.admin</p>
+                </>
+            )}
+        </div>
+
+        {/* Action Button */}
+        <div className="insta-actions">
+            {isEditing ? (
+                <button className="insta-btn primary" onClick={handleSave}>Save Profile</button>
+            ) : (
+                <button className="insta-btn" onClick={() => setIsEditing(true)}>Edit Profile</button>
+            )}
+            <button className="insta-btn" onClick={() => setShowAdminModal(true)}>Add Admin</button>
+        </div>
       </div>
 
-      {/* SECTION B: STATS */}
-      <div className="stats-grid">
-        <div className="stat-box">
-          <FaUsers className="stat-icon color-blue" />
-          <div><h3>{studentCount}</h3><span>Total Students</span></div>
-        </div>
-        <div className="stat-box">
-          <FaBell className="stat-icon color-orange" />
-          <div><h3>Active</h3><span>System Status</span></div>
-        </div>
-      </div>
-
-      {/* SECTION C: MENU */}
-      <div className="control-menu">
-        <h3>System Controls</h3>
-        
-        <div className="menu-item" onClick={() => setShowAdminModal(true)}>
-          <div className="icon-bg green-bg"><FaUserPlus /></div>
-          <div className="menu-text"><h4>Add New Admin</h4><p>Authorize another teacher</p></div>
-          <FaChevronRight className="arrow" />
-        </div>
-        
+      {/* 3. MENU LIST (Highlights Style) */}
+      <div className="insta-menu-list">
         <div className="menu-item" onClick={() => navigate("/admin/students-list")}>
-          <div className="icon-bg blue-bg"><FaUsers /></div>
-          <div className="menu-text"><h4>Manage Students</h4><p>View list, block or remove students</p></div>
-          <FaChevronRight className="arrow" />
+            <div className="icon-circle"><FaUsers /></div>
+            <span>Manage Students</span>
         </div>
         
-        <div className="menu-item" onClick={handleResetPassword}>
-          <div className="icon-bg yellow-bg"><FaKey /></div>
-          <div className="menu-text"><h4>Security</h4><p>Change Admin Password</p></div>
-          <FaChevronRight className="arrow" />
+        <div className="menu-item" onClick={() => {
+            const email = auth.currentUser?.email;
+            if(email) { sendPasswordResetEmail(auth, email); alert("Reset Link Sent!"); }
+        }}>
+            <div className="icon-circle"><FaKey /></div>
+            <span>Reset Password</span>
         </div>
-        
-        <div className="menu-item logout-item" onClick={handleLogout}>
-          <div className="icon-bg gray-bg"><FaSignOutAlt /></div>
-          <div className="menu-text"><h4>Logout</h4><p>Sign out from device</p></div>
+
+        <div className="menu-item logout" onClick={handleLogout}>
+            <div className="icon-circle red"><FaSignOutAlt /></div>
+            <span>Log Out</span>
         </div>
       </div>
 
@@ -269,37 +204,17 @@ const AdminProfile = () => {
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">
-              <h3>Add New Admin</h3>
-              <button className="close-btn" onClick={() => setShowAdminModal(false)}><FaTimes /></button>
+              <h4>New Admin Access</h4>
+              <FaTimes onClick={() => setShowAdminModal(false)} />
             </div>
             <form onSubmit={handleAddAdminSubmit}>
-              <div className="form-group">
-                <label>Admin Name</label>
-                <input 
-                  type="text" 
-                  placeholder="e.g. Prof. Sharma" 
-                  value={newAdminName} 
-                  onChange={(e) => setNewAdminName(e.target.value)} 
-                  required 
-                />
-              </div>
-              <div className="form-group">
-                <label>Admin Email</label>
-                <input 
-                  type="email" 
-                  placeholder="teacher@college.com" 
-                  value={newAdminEmail} 
-                  onChange={(e) => setNewAdminEmail(e.target.value)} 
-                  required 
-                />
-              </div>
-              <p className="modal-note">Note: This will allow this email to Sign Up as an Admin.</p>
-              <button type="submit" className="submit-btn">Send Invite</button>
+              <input placeholder="Name" value={newAdminName} onChange={e => setNewAdminName(e.target.value)} required />
+              <input placeholder="Email" value={newAdminEmail} onChange={e => setNewAdminEmail(e.target.value)} required />
+              <button type="submit" className="save-btn">Send Invite</button>
             </form>
           </div>
         </div>
       )}
-
     </div>
   );
 };

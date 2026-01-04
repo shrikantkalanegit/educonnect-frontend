@@ -3,11 +3,11 @@ import "./AdminDashboard.css";
 import { 
   FaHome, FaUserCircle, FaBell, 
   FaChalkboardTeacher, FaUsers, FaCrown, FaRobot,
-  FaQrcode // 👈 1. Naya Icon Import kiya
+  FaQrcode 
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
-// 👇 Firebase Imports
+// Firebase Imports
 import { auth, db } from "../../firebase";
 import { doc, onSnapshot } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
@@ -69,7 +69,7 @@ const AdminDashboard = () => {
         </header>
         
         <div className="vip-grid">
-          {/* Card 1 */}
+          {/* Card 1: Class Management */}
           <div className="vip-card card-blue" onClick={() => navigate('/admin/class-selection')}>
             <div className="card-bg-icon"><FaChalkboardTeacher /></div>
             <div className="card-content">
@@ -79,7 +79,7 @@ const AdminDashboard = () => {
             </div>
           </div>
 
-          {/* Card 2 */}
+          {/* Card 2: Student Community */}
           <div className="vip-card card-purple" onClick={() => navigate('/admin/community-selection')}>
             <div className="card-bg-icon"><FaUsers /></div>
             <div className="card-content">
@@ -89,7 +89,7 @@ const AdminDashboard = () => {
             </div>
           </div>
 
-          {/* Card 3 */}
+          {/* Card 3: Staff Room */}
           <div className="vip-card card-gold" onClick={() => navigate('/admin/staff-community')}>
             <div className="card-bg-icon"><FaCrown /></div>
             <div className="card-content">
@@ -99,8 +99,8 @@ const AdminDashboard = () => {
             </div>
           </div>
 
-          {/* Card 4 */}
-          <div className="vip-card card-teal" onClick={() => navigate('/admin/ai-tools')}>
+          {/* 👇 Card 4: Edu-AI Assistant (UPDATED LINK) */}
+          <div className="vip-card card-teal" onClick={() => navigate('/admin/ai')}>
             <div className="card-bg-icon"><FaRobot /></div>
             <div className="card-content">
               <div className="icon-box"><FaRobot /></div>
@@ -109,7 +109,7 @@ const AdminDashboard = () => {
             </div>
           </div>
 
-          {/* 👇 2. NAYA CARD ADD KIYA (Attendance) */}
+          {/* Card 5: Smart Attendance */}
           <div className="vip-card card-red" onClick={() => navigate('/admin/attendance')}>
             <div className="card-bg-icon"><FaQrcode /></div>
             <div className="card-content">

@@ -24,6 +24,7 @@ import ClassSelection from './components/ClassSelection/ClassSelection';
 import ManageSubjects from './components/ClassSelection/ManageSubjects';
 import StaffRoom from './components/AdminDashboard/StaffRoom';
 import CommunitySelection from './components/Community/CommunitySelection';
+import AdminAI from "./components/AdminDashboard/AdminAI";
 //Administrator Profile 
 import AdminProfile from "./components/AdminDashboard/AdminProfile";
 import StudentList from "./components/AdminDashboard/StudentList";
@@ -82,7 +83,7 @@ function App() {
           <Route path="/admin/students-list" element={<StudentList />} />
           {/* <Route path="/admin/attendance" element={<AdminAttendance />} /> */}
           <Route path="/admin/attendance" element={<AdminAttendance />} />
-          
+          <Route path="/admin/ai" element={<AdminAI />} />
 
 
           {/* ==============================
