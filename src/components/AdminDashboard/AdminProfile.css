@@ -1,163 +1,173 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
 
-/* --- INSTAGRAM CONTAINER --- */
-.insta-container {
-  background-color: #ffffff; /* Pure White like Insta */
+/* --- GLOBAL DARK THEME --- */
+.vip-container {
+  background-color: #0f1014;
   min-height: 100vh;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  color: #000;
-  padding-bottom: 80px;
+  font-family: 'Outfit', sans-serif;
+  color: #e2e8f0;
+  padding-bottom: 50px;
 }
 
-/* --- 1. HEADER (Top Bar) --- */
-.insta-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  border-bottom: 1px solid #dbdbdb;
-  position: sticky;
-  top: 0;
-  background: white;
-  z-index: 10;
+/* --- HEADER --- */
+.vip-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px;
+  background: rgba(15, 16, 20, 0.95);
+  position: sticky; top: 0; z-index: 50;
+  backdrop-filter: blur(10px);
 }
-
-.insta-header button {
-  background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #000;
-}
-
-.insta-header h3 {
-  margin: 0; font-size: 1.1rem; font-weight: 700;
-}
-
-/* --- 2. PROFILE SECTION --- */
-.insta-profile-section {
-  padding: 16px;
-}
-
-.insta-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-
-/* AVATAR */
-.insta-avatar {
-  position: relative;
-  width: 80px; height: 80px;
-  margin-right: 20px;
-  cursor: pointer;
-}
-
-.insta-avatar img {
-  width: 100%; height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 1px solid #dbdbdb;
-}
-
-.default-icon {
-  width: 100%; height: 100%;
-  border-radius: 50%;
-  padding: 10px;
-  background: #fafafa;
-  color: #dbdbdb;
-  border: 1px solid #dbdbdb;
-}
-
-.plus-icon {
-  position: absolute; bottom: 0; right: 0;
-  background: #0095f6; color: white;
-  width: 24px; height: 24px;
-  border-radius: 50%;
-  border: 2px solid white;
+.vip-back-btn {
+  background: rgba(255,255,255,0.1); border: none; color: white;
+  width: 40px; height: 40px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-size: 0.7rem;
-}
-
-/* STATS (Right Side) */
-.insta-stats {
-  display: flex;
-  justify-content: space-around;
-  flex-grow: 1;
-  text-align: center;
-}
-
-.stat-item { display: flex; flex-direction: column; }
-.stat-num { font-weight: 700; font-size: 1.1rem; color: #000; }
-.stat-label { font-size: 0.8rem; color: #000; }
-
-/* BIO */
-.insta-bio { margin-bottom: 15px; }
-.insta-bio h4 { margin: 0; font-size: 0.95rem; font-weight: 600; }
-.insta-bio p { margin: 2px 0 0; font-size: 0.9rem; color: #262626; }
-.bio-link { color: #00376b !important; font-weight: 500; }
-
-.edit-input {
-    display: block; width: 100%; margin-bottom: 5px;
-    padding: 6px; border: 1px solid #dbdbdb; border-radius: 4px;
-}
-
-/* ACTIONS (Buttons) */
-.insta-actions {
-  display: flex; gap: 8px;
-}
-
-.insta-btn {
-  flex: 1;
-  background-color: #efefef;
-  border: none;
-  border-radius: 8px;
-  padding: 7px 16px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #000;
   cursor: pointer;
-  text-align: center;
 }
-.insta-btn.primary { background: #0095f6; color: white; }
-.insta-btn:active { opacity: 0.7; }
+.vip-header h3 { margin: 0; font-size: 1.2rem; letter-spacing: 1px; color: #fff; }
+.vip-spacer { width: 40px; }
 
-/* --- 3. MENU ITEMS (List) --- */
-.insta-menu-list {
-  border-top: 1px solid #dbdbdb;
-  margin-top: 10px;
+/* --- CARD --- */
+.vip-card-wrapper { padding: 10px 20px; }
+
+.vip-black-card {
+  background: linear-gradient(135deg, #1c1c1c 0%, #2a2a2a 100%);
+  border-radius: 24px;
+  padding: 25px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.menu-item {
+.vip-black-card::before {
+  content: ''; position: absolute; top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.gold-crown { color: #ffd700; font-size: 1.5rem; filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.5)); }
+.card-label { font-size: 0.7rem; letter-spacing: 2px; color: #71717a; font-weight: 700; }
+
+.card-body { display: flex; align-items: center; gap: 20px; margin-bottom: 25px; }
+
+/* --- AVATAR & CAMERA FIX --- */
+.vip-avatar-group {
+    position: relative;
+    width: 80px; height: 80px;
+    flex-shrink: 0;
+}
+
+.vip-avatar {
+  width: 100%; height: 100%;
+  border-radius: 50%;
+  border: 2px solid #ffd700; /* Gold Border */
+  overflow: hidden;
+}
+.vip-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.vip-avatar svg { width: 100%; height: 100%; padding: 10px; background: #333; color: #888; }
+
+/* New Camera Bubble Style */
+.camera-bubble {
+  position: absolute; 
+  bottom: -5px; right: -5px; /* Thoda bahar nikla hua */
+  background: #ffd700; color: #000;
+  width: 28px; height: 28px; 
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.8rem; 
+  border: 3px solid #1c1c1c; /* Background se match karke cut-out effect */
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+  transition: transform 0.2s;
+}
+.camera-bubble:hover { transform: scale(1.1); }
+
+
+.vip-info { flex-grow: 1; }
+.vip-info h2 { margin: 0; font-size: 1.4rem; color: #fff; display: flex; align-items: center; gap: 8px; }
+.verified-icon { color: #3b82f6; font-size: 1rem; }
+.vip-info p { margin: 5px 0 10px; color: #a1a1aa; font-size: 0.9rem; }
+
+.vip-edit-link {
+  background: none; border: none; color: #ffd700;
+  font-size: 0.8rem; font-weight: 600; cursor: pointer;
+  text-decoration: underline; padding: 0;
+}
+
+.vip-edit-form input {
+  background: rgba(255,255,255,0.1); border: none; padding: 8px; color: white; margin-bottom: 5px; width: 100%; border-radius: 6px;
+}
+.edit-actions { display: flex; gap: 10px; margin-top: 5px; }
+.save-btn { background: #ffd700; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.8rem; }
+.cancel-btn { background: #333; color: white; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
+
+.card-footer {
+  display: flex; justify-content: space-between;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  padding-top: 15px;
+}
+.c-stat { display: flex; flex-direction: column; align-items: center; width: 33%; }
+.c-stat span { font-size: 0.7rem; color: #71717a; text-transform: uppercase; }
+.c-stat strong { font-size: 0.95rem; color: #fff; margin-top: 2px; }
+
+/* --- MENU --- */
+.vip-menu-section { padding: 20px; }
+.vip-menu-section h3 { font-size: 0.8rem; color: #71717a; margin-bottom: 10px; margin-top: 20px; text-transform: uppercase; letter-spacing: 1px; }
+
+.vip-glass-box {
+  background: rgba(30, 30, 35, 0.6);
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.05);
+  overflow: hidden;
+}
+
+.vip-menu-item {
   display: flex; align-items: center; gap: 15px;
-  padding: 15px;
-  border-bottom: 1px solid #fafafa;
-  cursor: pointer;
-  transition: background 0.2s;
+  padding: 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  cursor: pointer; transition: background 0.2s;
 }
-.menu-item:active { background: #fafafa; }
+.vip-menu-item:last-child { border-bottom: none; }
+.vip-menu-item:active { background: rgba(255,255,255,0.05); }
 
-.icon-circle {
-    font-size: 1.2rem; color: #262626;
+.vip-icon-box {
+  width: 36px; height: 36px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  color: #ffd700; font-size: 1rem; flex-shrink: 0;
 }
-.icon-circle.red { color: #ed4956; }
 
-.menu-item span { font-size: 1rem; color: #262626; }
-.menu-item.logout span { color: #ed4956; }
+.vip-menu-text { flex-grow: 1; }
+.vip-menu-text h4 { margin: 0; font-size: 0.95rem; color: #e2e8f0; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+.vip-menu-text p { margin: 2px 0 0; font-size: 0.75rem; color: #71717a; }
+
+.menu-badge {
+    background: #ef4444; color: white; font-size: 0.6rem; padding: 2px 6px; border-radius: 10px; font-weight: bold;
+}
+
+.vip-arrow { color: #52525b; font-size: 0.8rem; }
+.destructive .vip-icon-box { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+.destructive .vip-menu-text h4 { color: #ef4444; }
 
 /* --- MODAL --- */
-.modal-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.6); z-index: 200;
-    display: flex; justify-content: center; align-items: center;
+.vip-modal-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.8); z-index: 100;
+  display: flex; justify-content: center; align-items: center;
 }
-.modal-content {
-    background: white; width: 80%; max-width: 350px;
-    border-radius: 12px; padding: 20px;
+.vip-modal {
+  background: #1c1c1c; width: 85%; max-width: 350px; padding: 25px;
+  border-radius: 20px; border: 1px solid rgba(255,215,0,0.2);
 }
-.modal-header { display: flex; justify-content: space-between; margin-bottom: 15px; font-weight: bold; }
-.modal-content input {
-    width: 100%; padding: 10px; margin-bottom: 10px;
-    border: 1px solid #dbdbdb; border-radius: 4px; box-sizing: border-box;
+.v-modal-head { display: flex; justify-content: space-between; color: white; margin-bottom: 20px; }
+.vip-modal input {
+  width: 100%; padding: 12px; background: #2a2a2a; border: 1px solid #444;
+  color: white; margin-bottom: 10px; border-radius: 10px; box-sizing: border-box;
 }
-.save-btn {
-    width: 100%; background: #0095f6; color: white; padding: 10px;
-    border: none; border-radius: 4px; font-weight: bold;
+.vip-modal-btn {
+  width: 100%; padding: 12px; background: linear-gradient(90deg, #ffd700, #ffb700);
+  border: none; border-radius: 10px; font-weight: bold; color: black; cursor: pointer;
 }

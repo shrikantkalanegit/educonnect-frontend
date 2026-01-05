@@ -1,36 +1,37 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
-// --- 1. Auth Components (Login/Register) ---
+// --- 1. AUTH COMPONENTS ---
 import LoginPage from './components/LoginPage/LoginPage';
 import RegisterPage from './components/RegisterPage/RegisterPage';
-// import RegisterPage from "./components/LoginPage/RegisterPage";
 import AdminLogin from "./components/AdminLogin/AdminLogin";
 
-// --- 2. Student Components ---
-import HomePage from './components/HomePage/HomePage';
+// --- 2. STUDENT COMPONENTS ---
+// 👇 Corrected Imports based on your structure
+import HomePage from './components/HomePage/HomePage'; 
+import BooksPage from './components/BooksPage/BooksPage'; 
 import SubjectList from './components/SubjectPage/SubjectList';
 import StudentProfile from './components/StudentProfile/StudentProfile';
 import StudentScanner from "./components/Student/StudentScanner";
-// import Navbar from './components/Navbar/Navbar'; 
-import SubjectPage from './components/SubjectPage/SubjectPage';
-import BooksPage from './components/BooksPage/BooksPage';
-import GroupChatPage from './components/SubjectPage/GroupChatPage'; // Chat Page
+import GroupChatPage from './components/SubjectPage/GroupChatPage'; 
 import StudentCommunity from './components/Community/StudentCommunity';
 
-// --- 3. Admin Components ---
+// 👇 NEW FILE (Ise create karna padega, niche instruction hai)
+import StudentExams from "./components/HomePage/StudentExams";
+
+// --- 3. ADMIN COMPONENTS ---
 import AdminDashboard from './components/AdminDashboard/AdminDashboard';
+import AdminProfile from "./components/AdminDashboard/AdminProfile";
+import ManageBooks from "./components/AdminDashboard/ManageBooks"; 
+import ExamPortal from "./components/AdminDashboard/ExamPortal";   
+import AdminAttendance from "./components/AdminDashboard/AdminAttendance";
+import StudentList from "./components/AdminDashboard/StudentList";
+import AdminAI from "./components/AdminDashboard/AdminAI";
 import ClassSelection from './components/ClassSelection/ClassSelection';
 import ManageSubjects from './components/ClassSelection/ManageSubjects';
 import StaffRoom from './components/AdminDashboard/StaffRoom';
 import CommunitySelection from './components/Community/CommunitySelection';
-import AdminAI from "./components/AdminDashboard/AdminAI";
-//Administrator Profile 
-import AdminProfile from "./components/AdminDashboard/AdminProfile";
-import StudentList from "./components/AdminDashboard/StudentList";
-// import AdminAttendance from "./components/Admin/AdminAttendance";
-// 👇 App.js me path aise change karein
-import AdminAttendance from "./components/AdminDashboard/AdminAttendance";
+
 
 function App() {
   return (
@@ -39,59 +40,59 @@ function App() {
         <Routes>
           
           {/* ==============================
-              AUTHENTICATION ROUTES
+              AUTHENTICATION
           ============================== */}
           <Route path="/" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          {/* <Route path="/register" element={<RegisterPage />} /> */}
           <Route path="/admin-login" element={<AdminLogin />} />
-
 
           {/* ==============================
               STUDENT ROUTES
           ============================== */}
-          <Route path="/homepage" element={<HomePage />} />
-          <Route path="/subject" element={<SubjectList />} />
+          {/* 👇 Main Dashboard (HomePage) */}
+          <Route path="/home" element={<HomePage />} />
+          <Route path="/homepage" element={<HomePage />} /> {/* Duplicate path support */}
+
+          {/* Features */}
           <Route path="/books" element={<BooksPage />} />
+          <Route path="/papers" element={<StudentExams />} /> {/* Exam Portal */}
+          <Route path="/subject" element={<SubjectList />} />
+          <Route path="/subject/:subjectName" element={<GroupChatPage />} />
+          <Route path="/community" element={<StudentCommunity />} />
+          
+          {/* Profile & Tools */}
           <Route path="/student-profile" element={<StudentProfile />} />
           <Route path="/student/scan" element={<StudentScanner />} />
-          
-          {/* Student Chat (URL example: /subject/java) */}
-          <Route path="/subject/:subjectName" element={<GroupChatPage />} />
 
 
           {/* ==============================
               ADMIN ROUTES
           ============================== */}
-          {/* 1. Main Dashboard */}
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/profile" element={<AdminProfile />} />
 
-          {/* 2. Class Management Flow */}
+          {/* New Modules */}
+          <Route path="/admin/manage-books" element={<ManageBooks />} />
+          <Route path="/admin/exams" element={<ExamPortal />} />
+          
+          {/* Management */}
+          <Route path="/admin/students-list" element={<StudentList />} />
+          <Route path="/admin/attendance" element={<AdminAttendance />} />
           <Route path="/admin/class-selection" element={<ClassSelection />} />
           <Route path="/admin/manage-subjects/:yearId" element={<ManageSubjects />} />
-          
-          {/* 3. Community Flow (New) */}
           <Route path="/admin/community-selection" element={<CommunitySelection />} />
-
-          {/* 4. Staff Room (VIP Chat) */}
-          <Route path="/admin/staff-community" element={<StaffRoom />} />
-
-          {/* 5. Admin Chat Access (Reusable Chat Page) */}
-          {/* isAdmin={true} pass karne se page ko pata chalta hai ki Admin aaya hai */}
-          <Route path="/admin/chat/:subjectName" element={<GroupChatPage isAdmin={true} />} />
-          <Route path="/admin/profile" element={<AdminProfile />} />
-          <Route path="/admin/students-list" element={<StudentList />} />
-          {/* <Route path="/admin/attendance" element={<AdminAttendance />} /> */}
-          <Route path="/admin/attendance" element={<AdminAttendance />} />
+          
+          {/* Tools */}
           <Route path="/admin/ai" element={<AdminAI />} />
+          <Route path="/admin/staff-community" element={<StaffRoom />} />
+          
+          {/* Admin Chat View */}
+          <Route path="/admin/chat/:subjectName" element={<GroupChatPage isAdmin={true} />} />
 
 
           {/* ==============================
-              PLACEHOLDERS (Coming Soon)
+              PLACEHOLDERS
           ============================== */}
-          <Route path="/community" element={<StudentCommunity />} />
-          <Route path="/papers" element={<h2 style={{textAlign:'center', marginTop:'50px'}}>Exam Papers Coming Soon... 📄</h2>} />
-          <Route path="/profile" element={<h2 style={{textAlign:'center', marginTop:'50px'}}>User Profile Coming Soon... 👤</h2>} />
           <Route path="/notifications" element={<h2 style={{textAlign:'center', marginTop:'50px'}}>Notifications Coming Soon... 🔔</h2>} />
           <Route path="/admin/ai-tools" element={<h2 style={{textAlign:'center', marginTop:'50px'}}>AI Tools Coming Soon... 🤖</h2>} />
 
