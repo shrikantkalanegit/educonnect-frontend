@@ -1,11 +1,20 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { db } from "../../firebase"; 
 import { collection, getDocs, query, where, onSnapshot } from "firebase/firestore"; 
-import { FaQrcode, FaBook, FaTimes, FaArrowLeft, FaFileExcel, FaListAlt, FaSync } from "react-icons/fa"; 
+import { FaQrcode, FaBook, FaTimes, FaArrowLeft, FaFileExcel, FaListAlt, FaSync, FaClock } from "react-icons/fa"; 
 import QRCode from "react-qr-code"; 
 import * as XLSX from "xlsx"; 
 import "./AdminAttendance.css"; 
+
+// --- HELPER: FIXED DATE (Defined outside component) ---
+const getTodayDate = () => {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${day}/${month}/${year}`;
+};
 
 const AdminAttendance = () => {
   const navigate = useNavigate();
@@ -16,15 +25,6 @@ const AdminAttendance = () => {
   const [qrCodeValue, setQrCodeValue] = useState("");
   const [showQR, setShowQR] = useState(false);
   const [attendees, setAttendees] = useState([]); 
-
-  // --- HELPER: FIXED DATE (DD/MM/YYYY) ---
-  const getTodayDate = () => {
-    const d = new Date();
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${day}/${month}/${year}`;
-  };
 
   // 1. Fetch Subjects
   useEffect(() => {
@@ -71,23 +71,37 @@ const AdminAttendance = () => {
     return () => unsubscribe(); 
   }, [selectedSubject]);
 
-  // 3. GENERATE QR (With Random ID to force update)
-  const handleGenerateQR = () => {
-    if(!selectedSubject) return;
+  // 3. GENERATE DYNAMIC QR (Memoized to fix dependency warning)
+  const generateDynamicQR = useCallback(() => {
     const subject = subjects.find(s => s.id === selectedSubject);
-    
-    // 🔥 UNIQUE ID added so QR image changes every time
-    const uniqueSessionId = Date.now(); 
+    if (!subject) return;
 
     const qrData = JSON.stringify({
         subjectId: subject.id,
         subjectName: subject.name,
-        date: getTodayDate(), // Must match Student's date
-        sessionId: uniqueSessionId, // Forces QR to look different
+        date: getTodayDate(),
+        generatedAt: Date.now(), 
         valid: true
     });
 
     setQrCodeValue(qrData);
+  }, [subjects, selectedSubject]);
+
+  // 4. AUTO REFRESH EFFECT
+  useEffect(() => {
+    let interval;
+    if (showQR && selectedSubject) {
+        generateDynamicQR(); // Run once immediately
+
+        interval = setInterval(() => {
+            generateDynamicQR(); // Run every 3 seconds
+        }, 3000); 
+    }
+    return () => clearInterval(interval);
+  }, [showQR, selectedSubject, generateDynamicQR]); // Added dependency
+
+  const handleOpenQR = () => {
+    if(!selectedSubject) return;
     setShowQR(true);
   };
 
@@ -96,7 +110,7 @@ const AdminAttendance = () => {
     setQrCodeValue("");
   };
 
-  // 4. DOWNLOAD REPORT
+  // 5. DOWNLOAD REPORT
   const handleDownloadReport = async () => {
     if (!selectedSubject) return;
     const subjectObj = subjects.find(s => s.id === selectedSubject);
@@ -132,8 +146,8 @@ const AdminAttendance = () => {
                 ))}
             </select>
             <div style={{display: 'flex', gap: '10px'}}>
-                <button className="qr-btn" onClick={handleGenerateQR} disabled={!selectedSubject}>
-                    <FaQrcode style={{marginRight: "8px"}}/> Generate QR
+                <button className="qr-btn" onClick={handleOpenQR} disabled={!selectedSubject}>
+                    <FaQrcode style={{marginRight: "8px"}}/> Live QR Mode
                 </button>
                 <button className="qr-btn" style={{background: "#27ae60"}} onClick={handleDownloadReport} disabled={!selectedSubject}>
                     <FaFileExcel style={{marginRight: "8px"}}/> Report
@@ -148,19 +162,22 @@ const AdminAttendance = () => {
                 <h3>Scan for {subjects.find(s=>s.id === selectedSubject)?.name}</h3>
                 <button className="close-btn-icon" onClick={closeQR}><FaTimes /></button>
             </div>
+            
             <div className="qr-box">
                 <QRCode value={qrCodeValue} size={256} style={{ height: "auto", maxWidth: "100%", width: "100%" }} />
             </div>
-            <button className="qr-btn" onClick={handleGenerateQR} style={{marginTop:'10px', background:'#f39c12'}}>
-                <FaSync /> Refresh QR
-            </button>
+
+            <div style={{marginTop: '15px', color: '#e67e22', fontWeight: 'bold', display:'flex', alignItems:'center', justifyContent:'center', gap:'8px'}}>
+                 <FaSync className="spin-icon"/> Auto-refreshing... <FaClock />
+            </div>
+            <p className="warning-text">Do not take photos. Scan directly.</p>
         </div>
       )}
 
       {selectedSubject && (
         <div className="attendees-section">
             <div className="list-header">
-                <h3><FaListAlt /> Attendance List ({getTodayDate()})</h3>
+                <h3><FaListAlt /> Live List ({getTodayDate()})</h3>
                 <span className="live-badge">🔴 {attendees.length} Present</span>
             </div>
             <div className="table-responsive">

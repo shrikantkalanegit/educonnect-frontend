@@ -12,7 +12,6 @@ const StudentScanner = () => {
   const [loading, setLoading] = useState(false);
   const [scanActive, setScanActive] = useState(true);
 
-  // --- HELPER: DATE FORMAT (DD/MM/YYYY) ---
   const getTodayDate = () => {
     const d = new Date();
     const year = d.getFullYear();
@@ -42,9 +41,25 @@ const StudentScanner = () => {
 
       const today = getTodayDate(); 
 
-      // 🔍 DEBUGGING CHECK
+      // 1. DATE CHECK
       if (qrData.date !== today) {
-        throw new Error(`Date Mismatch!\nQR Date: ${qrData.date}\nYour Date: ${today}\n\n(Check your phone date settings)`);
+        throw new Error(`Date Mismatch!\nQR: ${qrData.date}, You: ${today}`);
+      }
+
+      // 2. 🔥 TIME CHECK (Proxy Prevention)
+      // Agar QR 60 seconds (60000ms) se purana hai, to reject karo
+      const qrTime = qrData.generatedAt;
+      const currentTime = Date.now();
+      const timeDiff = currentTime - qrTime;
+
+      // Agar time difference 1 minute se zyada hai
+      if (timeDiff > 60000) { 
+        throw new Error("⚠️ QR Code Expired!\nPlease scan the LIVE code from screen.");
+      }
+
+      // (Optional: Agar time negative hai matlb student ka clock peeche hai)
+      if (timeDiff < -5000) {
+         throw new Error("⚠️ Check your phone time.\nIt seems incorrect.");
       }
 
       if (!qrData.subjectId || !qrData.valid) throw new Error("Invalid Class QR");
@@ -77,7 +92,6 @@ const StudentScanner = () => {
     } catch (error) {
       console.error(error);
       setMessage("❌ " + error.message);
-      // Agar error aaye to user ko 'Retry' button dikhega
     } finally {
       setLoading(false);
     }

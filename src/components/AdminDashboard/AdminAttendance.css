@@ -235,3 +235,7 @@
     padding: 4px 10px; border-radius: 5px; font-size: 0.8rem; font-weight: bold;
 }
 .status-badge.present { background: #d4edda; color: #155724; }
+.spin-icon {
+    animation: spin 2s linear infinite;
+}
+@keyframes spin { 100% { transform: rotate(360deg); } }
