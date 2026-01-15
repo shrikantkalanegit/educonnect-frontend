@@ -4,12 +4,12 @@ import "./AdminProfile.css";
 import { 
   FaUserAstronaut, FaCrown, FaCamera, FaArrowLeft, FaTimes, 
   FaShieldAlt, FaHistory, FaIdCard, FaBullhorn, FaSignOutAlt, FaKey, FaUsers, FaGem, FaPaperPlane,
-  FaChevronRight 
+  FaChevronRight, FaClock 
 } from "react-icons/fa";
 
 import { auth, db } from "../../firebase";
 import { signOut, sendPasswordResetEmail, onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, setDoc, addDoc, collection, getCountFromServer, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc, addDoc, collection, getCountFromServer, serverTimestamp, Timestamp } from "firebase/firestore";
 
 const AdminProfile = () => {
   const navigate = useNavigate();
@@ -17,22 +17,24 @@ const AdminProfile = () => {
   
   const [loading, setLoading] = useState(true);
   
-  // Modals State
+  // Modals
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [showNoticeModal, setShowNoticeModal] = useState(false); 
 
-  // Form States
+  // Forms
   const [newAdminEmail, setNewAdminEmail] = useState("");
   const [newAdminName, setNewAdminName] = useState("");
   
-  // Notice States
+  // 🔥 NOTICE STATES
   const [noticeMsg, setNoticeMsg] = useState("");
-  const [noticeTarget, setNoticeTarget] = useState("All");
+  const [noticeTarget, setNoticeTarget] = useState("All Years");
+  const [noticeDuration, setNoticeDuration] = useState("24"); // Default 24 Hours
 
   const [studentCount, setStudentCount] = useState(0);
   const [adminData, setAdminData] = useState({
     name: "Admin", designation: "Faculty", profilePic: "", role: "Super Admin"
   });
+  const [currentDept, setCurrentDept] = useState(""); // Faculty name ke liye
   
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState({});
@@ -41,6 +43,10 @@ const AdminProfile = () => {
   const UPLOAD_PRESET = "ml_default"; 
 
   useEffect(() => {
+    // Current Faculty Pata Karo
+    const dept = localStorage.getItem("currentDept") || "General";
+    setCurrentDept(dept);
+
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (user) {
         await fetchAdminData(user.uid);
@@ -69,16 +75,12 @@ const AdminProfile = () => {
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    
-    // Optimistic Update
     const objectUrl = URL.createObjectURL(file);
     setAdminData(prev => ({ ...prev, profilePic: objectUrl }));
-    
     const formData = new FormData();
     formData.append("file", file);
     formData.append("upload_preset", UPLOAD_PRESET); 
     formData.append("cloud_name", CLOUD_NAME);
-    
     try {
       const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, { method: "POST", body: formData });
       const data = await res.json();
@@ -104,25 +106,35 @@ const AdminProfile = () => {
     } catch (e) { alert("Error"); }
   };
 
-  // BROADCAST NOTICE FUNCTION
+  // 🔥 UPDATED NOTICE LOGIC (Timer + Faculty + Auto Delete Time)
   const handleSendNotice = async () => {
     if(!noticeMsg) return alert("Please write a message!");
+
+    // Calculate Expiry Time
+    const now = new Date();
+    let expiryTime = new Date();
     
+    if(noticeDuration === "0.08") { // 5 Minutes
+        expiryTime.setMinutes(now.getMinutes() + 5);
+    } else {
+        expiryTime.setHours(now.getHours() + parseInt(noticeDuration));
+    }
+
     try {
         await addDoc(collection(db, "notices"), {
             message: noticeMsg,
-            target: noticeTarget, // "All", "1st Year", etc.
-            date: new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short' }),
-            timestamp: serverTimestamp(),
-            sender: adminData.name
+            targetYear: noticeTarget,
+            department: currentDept, // Faculty Locked 🔒
+            durationLabel: noticeDuration === "0.08" ? "5 Mins" : `${noticeDuration} Hours`,
+            createdAt: serverTimestamp(),
+            expiresAt: Timestamp.fromDate(expiryTime), // Auto delete ke liye date
+            sender: adminData.name,
+            senderPic: adminData.profilePic || ""
         });
-        alert("Notice Sent Successfully!");
+        alert("Campus Update Broadcasted! 📢");
         setNoticeMsg("");
         setShowNoticeModal(false);
-    } catch(error) {
-        console.error("Error sending notice: ", error);
-        alert("Failed to send notice.");
-    }
+    } catch(error) { alert("Failed to send notice."); }
   };
 
   const MenuItem = ({ icon, label, subtext, onClick, isDestructive, badge }) => (
@@ -136,18 +148,12 @@ const AdminProfile = () => {
     </div>
   );
 
-  // Styles for modal inputs (extracted to avoid long lines error)
-  const inputStyle = {
-    width:'100%', padding:'10px', background:'#333', 
-    color:'white', border:'1px solid #555', 
-    borderRadius:'8px', marginBottom:'15px'
-  };
+  const inputStyle = { width:'100%', padding:'10px', background:'#333', color:'white', border:'1px solid #555', borderRadius:'8px', marginBottom:'15px' };
 
   if (loading) return <div className="vip-loading">Loading Luxury Profile...</div>;
 
   return (
     <div className="vip-container">
-      {/* HEADER */}
       <header className="vip-header">
         <button className="vip-back-btn" onClick={() => navigate('/admin-dashboard')}>
             <FaArrowLeft />
@@ -156,7 +162,7 @@ const AdminProfile = () => {
         <div className="vip-spacer"></div>
       </header>
 
-      {/* CARD */}
+      {/* ... (VIP CARD SECTION SAME AS BEFORE) ... */}
       <div className="vip-card-wrapper">
         <div className="vip-black-card">
             <div className="card-top">
@@ -197,13 +203,12 @@ const AdminProfile = () => {
 
             <div className="card-footer">
                 <div className="c-stat"><span>Students</span><strong>{studentCount}</strong></div>
-                <div className="c-stat"><span>Role</span><strong>{adminData.role || "Super Admin"}</strong></div>
+                <div className="c-stat"><span>Faculty</span><strong>{currentDept}</strong></div>
                 <div className="c-stat"><span>Status</span><strong style={{color:'#4ade80'}}>Active</strong></div>
             </div>
         </div>
       </div>
 
-      {/* MENU */}
       <div className="vip-menu-section">
         <h3>Management</h3>
         <div className="vip-glass-box">
@@ -215,17 +220,25 @@ const AdminProfile = () => {
         <h3>System & Logs</h3>
         <div className="vip-glass-box">
             <MenuItem icon={<FaHistory />} label="Activity Log" subtext="View recent actions" onClick={() => alert("No recent activity.")} />
-            <MenuItem icon={<FaBullhorn />} label="Broadcast Notice" subtext="Send Alerts to All" onClick={() => setShowNoticeModal(true)} />
+            {/* 👇 RENAMED TO CAMPUS UPDATES */}
+            <MenuItem icon={<FaBullhorn />} label="Campus Updates" subtext="Broadcast Notices" onClick={() => setShowNoticeModal(true)} />
         </div>
 
         <h3>Settings</h3>
         <div className="vip-glass-box">
             <MenuItem icon={<FaKey />} label="Change Password" subtext="Security" onClick={() => {if(auth.currentUser?.email) { sendPasswordResetEmail(auth, auth.currentUser.email); alert("Reset Email Sent!"); }}} />
-            <MenuItem icon={<FaSignOutAlt />} label="Sign Out" subtext="Secure Exit" isDestructive={true} onClick={async () => {if(window.confirm("Confirm Logout?")) { await signOut(auth); navigate("/"); }}} />
+            <MenuItem 
+                icon={<FaSignOutAlt />} label="Sign Out" subtext="Secure Exit" isDestructive={true} 
+                onClick={async () => {
+                    if(window.confirm("Confirm Logout?")) { 
+                        await signOut(auth); localStorage.clear(); navigate("/", { replace: true }); 
+                    }
+                }} 
+            />
         </div>
       </div>
 
-      {/* 1. ADMIN INVITE MODAL */}
+      {/* INVITE ADMIN MODAL (SAME) */}
       {showAdminModal && (
         <div className="vip-modal-overlay">
           <div className="vip-modal">
@@ -237,35 +250,38 @@ const AdminProfile = () => {
         </div>
       )}
 
-      {/* 2. BROADCAST NOTICE MODAL */}
+      {/* 🔥 CAMPUS UPDATES MODAL */}
       {showNoticeModal && (
         <div className="vip-modal-overlay">
           <div className="vip-modal">
-            <div className="v-modal-head"><h3>📢 Broadcast Notice</h3><FaTimes onClick={()=>setShowNoticeModal(false)}/></div>
+            <div className="v-modal-head"><h3>📢 Campus Update</h3><FaTimes onClick={()=>setShowNoticeModal(false)}/></div>
             
-            <label style={{color:'#bbb', fontSize:'0.9rem', marginBottom:'5px', display:'block'}}>Target Audience:</label>
-            <select 
-                value={noticeTarget} 
-                onChange={(e) => setNoticeTarget(e.target.value)}
-                style={inputStyle}
-            >
-                <option value="All">All Students</option>
+            <p className="modal-label">Faculty: <strong>{currentDept}</strong></p>
+
+            <label className="modal-sublabel">Target Audience:</label>
+            <select value={noticeTarget} onChange={(e) => setNoticeTarget(e.target.value)} style={inputStyle}>
+                <option value="All Years">All Years</option>
                 <option value="1st Year">1st Year Only</option>
                 <option value="2nd Year">2nd Year Only</option>
                 <option value="3rd Year">3rd Year Only</option>
                 <option value="4th Year">4th Year Only</option>
             </select>
 
+            <label className="modal-sublabel">Notice Duration (Auto-Delete):</label>
+            <select value={noticeDuration} onChange={(e) => setNoticeDuration(e.target.value)} style={inputStyle}>
+                <option value="24">24 Hours (Standard)</option>
+                <option value="48">2 Days</option>
+                <option value="168">1 Week</option>
+                <option value="0.08">⚡ 5 Minutes (Testing)</option>
+            </select>
+
             <textarea 
-                placeholder="Type your notice here..." 
-                value={noticeMsg} 
-                onChange={e=>setNoticeMsg(e.target.value)} 
-                rows="4"
+                placeholder="Type your notice here..." value={noticeMsg} onChange={e=>setNoticeMsg(e.target.value)} rows="4" 
                 style={{...inputStyle, fontFamily:'inherit'}}
             />
 
             <button className="vip-modal-btn" onClick={handleSendNotice}>
-                <FaPaperPlane style={{marginRight:'8px'}}/> Send Notice
+                <FaPaperPlane style={{marginRight:'8px'}}/> Broadcast Now
             </button>
           </div>
         </div>

@@ -14,7 +14,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 40px;
-  max-width: 1000px;
+  max-width: 1200px; /* Thoda wide kiya taaki 4 cards fit ho sakein */
   margin-left: auto; margin-right: auto;
 }
 
@@ -28,12 +28,13 @@
 }
 .comm-back-btn:hover { transform: translateX(-5px); background: #4a148c; color: white; }
 
-/* Grid Layout */
+/* Grid Layout - UPDATED FOR 4 CARDS */
 .comm-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 3 Cards for 3 Years */
+  /* 👇 Auto-fit use kiya taaki screen choti hone par khud adjust ho jaye */
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); 
   gap: 30px;
-  max-width: 1000px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
@@ -49,6 +50,10 @@
   overflow: hidden;
   box-shadow: 0 10px 25px rgba(156, 39, 176, 0.1);
   border: 1px solid rgba(156, 39, 176, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 250px;
 }
 
 .comm-card:hover {
@@ -70,22 +75,27 @@
 /* Join Button */
 .comm-btn {
   background: transparent;
-  border: 2px solid #9c27b0;
-  color: #9c27b0;
+  border: 2px solid; /* Color inline style se aayega */
   padding: 8px 25px;
   border-radius: 20px;
   font-weight: bold;
   transition: 0.3s;
+  margin-top: auto; /* Bottom align */
+  display: flex; align-items: center; justify-content: center; width: fit-content; margin-left: auto; margin-right: auto;
 }
 
-.comm-card:hover .comm-btn { background: #9c27b0; color: white; }
+.comm-card:hover .comm-btn { background: currentColor; color: white !important; }
 
 /* Decorative Circle */
 .decor-circle {
   position: absolute; top: -30px; right: -30px;
   width: 100px; height: 100px; border-radius: 50%;
   opacity: 0.1;
+  pointer-events: none;
 }
 
 /* Responsive */
-@media (max-width: 768px) { .comm-grid { grid-template-columns: 1fr; } }
+@media (max-width: 768px) { 
+    .comm-grid { grid-template-columns: 1fr; } 
+    .comm-header { flex-direction: column; gap: 15px; text-align: center; }
+}

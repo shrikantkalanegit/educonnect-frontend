@@ -1,84 +1,111 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./RegisterPage.css";
 import { Link, useNavigate } from 'react-router-dom';
-
-// 👇 IMPORTANT IMPORTS (Inke bina save nahi hoga)
 import { auth, db } from "../../firebase"; 
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, collection, getDocs, query, orderBy, where, updateDoc } from "firebase/firestore"; // 👈 Updated Imports
 
 function RegisterPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [departmentList, setDepartmentList] = useState([]);
 
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
     studentId: "",
+    department: "",
     year: "", 
     password: "",
     confirmPassword: "",
   });
 
+  // 1. Fetch Departments
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const q = query(collection(db, "departments"), orderBy("name"));
+        const querySnapshot = await getDocs(q);
+        setDepartmentList(querySnapshot.docs.map(doc => doc.data().name));
+      } catch (error) { console.error("Error:", error); }
+    };
+    fetchDepartments();
+  }, []);
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // 👇 ASLI LOGIC YAHAN HAI
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // 1. Validation
     if (formData.password !== formData.confirmPassword) {
-      alert("❌ Password match nahi kar raha!");
-      return;
+      alert("❌ Passwords match nahi ho rahe!"); return;
     }
-    if (!formData.year) {
-      alert("⚠️ Year select karna zaroori hai!");
-      return;
+    if (!formData.department || !formData.year) {
+      alert("⚠️ Department aur Year select karna zaroori hai!"); return;
     }
 
     try {
       setLoading(true);
-      
-      // 🟢 Checkpoint 1
-      alert("⏳ Step 1: Account banana shuru...");
 
-      // 2. Authentication (Login ID Create)
+      // 🔥 SECURITY CHECK: Kya ye Student ID allowed list mein hai?
+      const q = query(
+        collection(db, "allowed_students"), 
+        where("studentId", "==", formData.studentId.toUpperCase()), // Case insensitive match
+        where("department", "==", formData.department) // Sahi department check
+      );
+      
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        // ⛔ Agar ID list mein nahi mili
+        alert("⛔ ACCESS DENIED! \nAapka Student ID database mein nahi mila. \nKripya College Admin se contact karein ki apka Roll No add karein.");
+        setLoading(false);
+        return;
+      }
+
+      // Check agar ye ID pehle se registered hai
+      const allowedDoc = querySnapshot.docs[0];
+      if (allowedDoc.data().isRegistered) {
+         alert("⚠️ Yeh Student ID pehle se register ho chuka hai! Login karein.");
+         setLoading(false);
+         return;
+      }
+
+      // ✅ Agar sab sahi hai, to Account Banao
       const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
       const user = userCredential.user;
-      
-      // 🟢 Checkpoint 2
-      alert(`✅ Step 2: Login ID ban gayi! (UID: ${user.uid})\nAb Database mein save kar raha hun...`);
 
-      // 3. Database (Data Save)
+      // User Data Save in 'users' collection
       await setDoc(doc(db, "users", user.uid), {
         uid: user.uid,
         name: formData.fullName, 
         email: formData.email,
-        studentId: formData.studentId,
-        year: formData.year, // "1st Year", etc.
+        studentId: formData.studentId.toUpperCase(),
+        department: formData.department,
+        year: formData.year,
         role: "student",
         createdAt: new Date()
       });
 
-      // 🟢 Checkpoint 3
-      alert("🎉 Step 3: SUCCESS! Data Database mein save ho gaya.");
+      // 🔥 Allowed List mein status update karo (Taaki dubara register na ho sake)
+      await updateDoc(doc(db, "allowed_students", allowedDoc.id), {
+        isRegistered: true,
+        registeredUid: user.uid
+      });
       
       setLoading(false);
-      navigate("/"); // Login page par bhejo
+      alert("✅ Account Successfully Created! Welcome to EduConnect.");
+      navigate("/");
 
     } catch (error) {
-      console.error("Error Details:", error);
+      console.error("Error:", error);
       setLoading(false);
-      
-      // Error Batane wala Logic
       if (error.code === 'auth/email-already-in-use') {
-        alert("⚠️ Yeh Email pehle se registered hai. Login karein.");
-      } else if (error.code === 'auth/weak-password') {
-        alert("⚠️ Password bahut kamzor hai. Kam se kam 6 characters rakhein.");
+        alert("⚠️ Ye Email pehle se registered hai.");
       } else {
-        alert("❌ Error Aaya: " + error.message);
+        alert("❌ Error: " + error.message);
       }
     }
   };
@@ -87,71 +114,45 @@ function RegisterPage() {
     <div className="register-wrapper">
       <div className="register-card">
         <h2>Student Registration 🎓</h2>
+        <p style={{textAlign:'center', color:'#666', fontSize:'0.9rem', marginBottom:'20px'}}>Only Verified IDs Allowed</p>
         
         <form className="register-form" onSubmit={handleSubmit}>
-          <input
-            type="text"
-            name="fullName"
-            placeholder="Full Name"
-            value={formData.fullName}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="email"
-            name="email"
-            placeholder="Email ID"
-            value={formData.email}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="text"
-            name="studentId"
-            placeholder="Student ID / Roll No"
-            value={formData.studentId}
-            onChange={handleChange}
-            required
+          <input type="text" name="fullName" placeholder="Full Name" value={formData.fullName} onChange={handleChange} required />
+          <input type="email" name="email" placeholder="Email ID" value={formData.email} onChange={handleChange} required />
+          
+          <input 
+            type="text" 
+            name="studentId" 
+            placeholder="Student ID / Roll No (Ex: BCA001)" 
+            value={formData.studentId} 
+            onChange={handleChange} 
+            required 
+            style={{textTransform: 'uppercase'}} 
           />
           
-          <select 
-            name="year" 
-            value={formData.year} 
-            onChange={handleChange} 
-            required
-            className="year-dropdown"
-            style={{ padding: '12px', borderRadius: '8px', border: '1px solid #ccc', marginBottom: '15px', width: '100%' }}
-          >
-            <option value="">Select Year</option>
+          <select name="department" value={formData.department} onChange={handleChange} required className="register-dropdown">
+            <option value="">-- Select Faculty --</option>
+            {departmentList.length > 0 ? (
+                departmentList.map((dept, index) => (<option key={index} value={dept}>{dept}</option>))
+            ) : <option disabled>Loading...</option>}
+          </select>
+
+          <select name="year" value={formData.year} onChange={handleChange} required className="register-dropdown">
+            <option value="">-- Select Year --</option>
             <option value="1st Year">1st Year</option>
             <option value="2nd Year">2nd Year</option>
             <option value="3rd Year">3rd Year</option>
+            <option value="4th Year">4th Year</option>
           </select>
 
-          <input
-            type="password"
-            name="password"
-            placeholder="Password (Min 6 chars)"
-            value={formData.password}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="password"
-            name="confirmPassword"
-            placeholder="Confirm Password"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            required
-          />
+          <input type="password" name="password" placeholder="Password (Min 6 chars)" value={formData.password} onChange={handleChange} required />
+          <input type="password" name="confirmPassword" placeholder="Confirm Password" value={formData.confirmPassword} onChange={handleChange} required />
           
-          <button type="submit" disabled={loading} style={{ cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1 }}>
-            {loading ? "Processing..." : "Register Now"}
+          <button type="submit" disabled={loading} className="reg-btn">
+            {loading ? "Verifying ID..." : "Register Securely"}
           </button>
           
-          <p className="login-link">
-           Already registered? <Link to="/">Login here</Link>
-          </p>
+          <p className="login-link">Already registered? <Link to="/">Login here</Link></p>
         </form>
       </div>
     </div>

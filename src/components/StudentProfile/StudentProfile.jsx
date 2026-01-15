@@ -1,101 +1,148 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom"; // Back button ke liye
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom"; 
 import { auth, db } from "../../firebase"; 
 import { updateProfile } from "firebase/auth";
 import { doc, updateDoc, getDoc } from "firebase/firestore"; 
 import "./StudentProfile.css"; 
-import { FaCamera, FaUserEdit, FaEnvelope, FaGraduationCap, FaIdBadge, FaArrowLeft, FaSave, FaTimes } from "react-icons/fa";
+import { 
+    FaCamera, FaUserEdit, FaEnvelope, FaGraduationCap, FaIdBadge, 
+    FaArrowLeft, FaSave, FaTimes, FaMapMarkerAlt, FaCalendarAlt, 
+    FaTint, FaPhone, FaCheck 
+} from "react-icons/fa";
+
+// 👇 NEW IMPORTS FOR CROPPER
+import Cropper from "react-easy-crop";
+import { getCroppedImg } from "../../utils/cropUtils"; // Path check kar lena
 
 const StudentProfile = () => {
-  const navigate = useNavigate(); // Navigation hook
+  const navigate = useNavigate();
   const user = auth.currentUser;
   
-  // --- STATES ---
-  const [photoURL, setPhotoURL] = useState("https://cdn-icons-png.flaticon.com/512/149/149071.png");
-  const [name, setName] = useState("Student Name");
-  const [bio, setBio] = useState("Code, Create, Innovate.");
-  
   const [loading, setLoading] = useState(false);
-  const [isEditing, setIsEditing] = useState(false); // Edit Mode ON/OFF karne ke liye
+  const [isEditing, setIsEditing] = useState(false);
+
+  // --- CROPPER STATES ---
+  const [imageSrc, setImageSrc] = useState(null); // Selected Image
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const [isCropping, setIsCropping] = useState(false); // Modal visibility
+
+  // --- USER DATA STATE ---
+  const [userData, setUserData] = useState({
+    name: "", email: "", bio: "Student at EduConnect",
+    studentId: "", department: "", year: "",
+    dob: "", bloodGroup: "", mobile: "",
+    address: { at: "", post: "", taluka: "", district: "", pincode: "" }
+  });
+
+  const [photoURL, setPhotoURL] = useState("https://cdn-icons-png.flaticon.com/512/149/149071.png");
 
   // --- DATA LOAD ---
   useEffect(() => {
     if (user) {
       setPhotoURL(user.photoURL || "https://cdn-icons-png.flaticon.com/512/149/149071.png");
-      setName(user.displayName || "Student Name");
-      
-      // Database se Bio aur extra details lana
       const fetchUserData = async () => {
-        const docRef = doc(db, "users", user.uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-           const data = docSnap.data();
-           if(data.bio) setBio(data.bio);
-        }
+        try {
+            const docRef = doc(db, "users", user.uid);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+               const data = docSnap.data();
+               setUserData({
+                   name: data.name || user.displayName,
+                   email: user.email,
+                   bio: data.bio || "Student at EduConnect",
+                   studentId: data.studentId || "N/A",
+                   department: data.department || "N/A",
+                   year: data.year || "N/A",
+                   dob: data.dob || "",
+                   bloodGroup: data.bloodGroup || "",
+                   mobile: data.mobile || "",
+                   address: data.address || { at: "", post: "", taluka: "", district: "", pincode: "" }
+               });
+            }
+        } catch (error) { console.error("Error fetching data:", error); }
       }
       fetchUserData();
     }
   }, [user]);
 
-  // --- CLOUDINARY UPLOAD ---
-  const handleImageChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setLoading(true);
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setUserData({ ...userData, [name]: value });
+  };
 
-    const cloudName = "dpfz1gq4y"; 
-    const uploadPreset = "ml_default"; 
+  const handleAddressChange = (e) => {
+    const { name, value } = e.target;
+    setUserData({ ...userData, address: { ...userData.address, [name]: value } });
+  };
 
-    const data = new FormData();
-    data.append("file", file);
-    data.append("upload_preset", uploadPreset);
-    data.append("cloud_name", cloudName);
-
-    try {
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-        method: "POST", body: data,
+  // --- 1. FILE SELECT HANDLER (Select -> Open Cropper) ---
+  const onFileChange = async (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.addEventListener("load", () => {
+        setImageSrc(reader.result); // Image Data URL
+        setIsCropping(true); // Open Modal
       });
-      
-      if (!res.ok) throw new Error("Upload Failed. Check Cloudinary Preset (Must be Unsigned)");
+      reader.readAsDataURL(file);
+    }
+  };
 
+  // --- 2. CROP COMPLETE HANDLER ---
+  const onCropComplete = (croppedArea, croppedAreaPixels) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  };
+
+  // --- 3. UPLOAD CROPPED IMAGE ---
+  const showCroppedImage = async () => {
+    try {
+      setLoading(true);
+      // Logic to cut image
+      const croppedImageBlob = await getCroppedImg(imageSrc, croppedAreaPixels);
+      
+      // Upload Logic (Cloudinary)
+      const cloudName = "dpfz1gq4y"; 
+      const uploadPreset = "ml_default"; 
+
+      const data = new FormData();
+      data.append("file", croppedImageBlob);
+      data.append("upload_preset", uploadPreset);
+      data.append("cloud_name", cloudName);
+
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, { method: "POST", body: data });
       const cloudData = await res.json();
       const newPhotoURL = cloudData.secure_url;
 
       // Firebase Update
       await updateProfile(user, { photoURL: newPhotoURL });
-      const userDocRef = doc(db, "users", user.uid);
-      await updateDoc(userDocRef, { photoURL: newPhotoURL }, { merge: true });
+      await updateDoc(doc(db, "users", user.uid), { photoURL: newPhotoURL }, { merge: true });
 
       setPhotoURL(newPhotoURL);
+      setIsCropping(false); // Close Modal
+      setImageSrc(null);
       alert("Profile Pic Updated! 🎉");
-    } catch (error) {
-      console.error(error);
-      alert("❌ Photo Upload Error: Cloudinary Settings check karein (Unsigned Preset).");
+    } catch (e) {
+      console.error(e);
+      alert("Error uploading image");
     }
     setLoading(false);
   };
 
-  // --- SAVE PROFILE ---
+  // --- SAVE PROFILE TEXT DATA ---
   const handleSaveProfile = async () => {
     if(!user) return;
     setLoading(true);
     try {
-        // 1. Auth Profile Update (Name)
-        await updateProfile(user, { displayName: name });
-
-        // 2. Firestore Update (Bio & Name)
-        const userDocRef = doc(db, "users", user.uid);
-        await updateDoc(userDocRef, { 
-            displayName: name,
-            bio: bio 
-        }, { merge: true }); // 'merge: true' zaroori hai taki baki data delete na ho
-
+        await updateProfile(user, { displayName: userData.name });
+        await updateDoc(doc(db, "users", user.uid), { 
+            name: userData.name, bio: userData.bio, dob: userData.dob,
+            bloodGroup: userData.bloodGroup, mobile: userData.mobile, address: userData.address 
+        }, { merge: true });
         setIsEditing(false);
         alert("Profile Updated Successfully! ✅");
-    } catch (error) {
-        console.error(error);
-        alert("Error updating profile.");
-    }
+    } catch (error) { alert("Error updating profile."); }
     setLoading(false);
   };
 
@@ -106,54 +153,29 @@ const StudentProfile = () => {
 
       <div className="profile-wrapper">
         
-        {/* --- COVER PHOTO HEADER --- */}
         <div className="profile-cover">
-            {/* 🔙 BACK BUTTON */}
-            <button className="back-btn-float" onClick={() => navigate(-1)}>
-                <FaArrowLeft /> Back
-            </button>
+            <button className="back-btn-float" onClick={() => navigate('/homepage')}><FaArrowLeft /> Home</button>
             
             <div className="profile-pic-container">
                 <img src={photoURL} alt="Profile" className="profile-pic" />
-                
-                {/* Camera Icon - Sirf tab dikhega jab Edit Mode OFF ho ya ON ho (Hamesha dikha sakte hain) */}
-                <label htmlFor="fileInput" className="cam-icon">
-                    <FaCamera />
-                </label>
-                <input 
-                    type="file" id="fileInput" 
-                    style={{ display: "none" }} 
-                    onChange={handleImageChange} accept="image/*"
-                />
+                <label htmlFor="fileInput" className="cam-icon"><FaCamera /></label>
+                {/* 👇 Input changed to onFileChange */}
+                <input type="file" id="fileInput" style={{ display: "none" }} onChange={onFileChange} accept="image/*" />
             </div>
         </div>
 
-        {/* --- MAIN CONTENT --- */}
         <div className="profile-content">
-            
             <div className="info-header">
                 {isEditing ? (
-                    // ✏️ EDIT MODE
                     <>
-                        <input 
-                            type="text" 
-                            className="edit-input name-input" 
-                            value={name} 
-                            onChange={(e) => setName(e.target.value)} 
-                        />
-                        <textarea 
-                            className="edit-textarea" 
-                            rows="2"
-                            value={bio} 
-                            onChange={(e) => setBio(e.target.value)}
-                        />
+                        <input type="text" name="name" className="edit-input name-input" value={userData.name} onChange={handleChange} placeholder="Full Name" />
+                        <textarea name="bio" className="edit-textarea" rows="2" value={userData.bio} onChange={handleChange} placeholder="Bio..." />
                     </>
                 ) : (
-                    // 👀 VIEW MODE
                     <>
-                        <h1>{name}</h1>
-                        <p className="role-text">Student • TYBSC-CS</p> 
-                        <p className="bio-text">"{bio}"</p>
+                        <h1>{userData.name}</h1>
+                        <p className="role-text">{userData.year} • {userData.department}</p> 
+                        <p className="bio-text">"{userData.bio}"</p>
                     </>
                 )}
             </div>
@@ -161,53 +183,82 @@ const StudentProfile = () => {
             <hr className="divider" />
 
             <div className="details-grid">
-                <div className="detail-item">
-                    <div className="icon-badge blue"><FaEnvelope /></div>
-                    <div>
-                        <label>Email ID</label>
-                        <h4>{user?.email}</h4>
-                    </div>
-                </div>
-
-                <div className="detail-item">
-                    <div className="icon-badge purple"><FaGraduationCap /></div>
-                    <div>
-                        <label>Course</label>
-                        <h4>Computer Science</h4>
-                    </div>
-                </div>
-
-                <div className="detail-item">
-                    <div className="icon-badge green"><FaIdBadge /></div>
-                    <div>
-                        <label>Student ID</label>
-                        <h4>#STU-{user?.uid?.slice(0,6).toUpperCase()}</h4>
-                    </div>
-                </div>
+                <div className="detail-item"><div className="icon-badge purple"><FaGraduationCap /></div><div><label>Class</label><h4>{userData.department} ({userData.year})</h4></div></div>
+                <div className="detail-item"><div className="icon-badge green"><FaIdBadge /></div><div><label>Student ID</label><h4>{userData.studentId}</h4></div></div>
+                <div className="detail-item"><div className="icon-badge blue"><FaEnvelope /></div><div><label>Email</label><h4>{userData.email}</h4></div></div>
+                <div className="detail-item"><div className="icon-badge orange"><FaPhone /></div><div><label>Mobile No</label>{isEditing ? (<input type="text" name="mobile" className="edit-input-sm" value={userData.mobile} onChange={handleChange} />) : <h4>{userData.mobile || "N/A"}</h4>}</div></div>
+                <div className="detail-item"><div className="icon-badge red"><FaTint /></div><div><label>Blood Group</label>{isEditing ? (<select name="bloodGroup" className="edit-input-sm" value={userData.bloodGroup} onChange={handleChange}><option value="">Select</option><option value="A+">A+</option><option value="B+">B+</option><option value="O+">O+</option><option value="AB+">AB+</option></select>) : <h4>{userData.bloodGroup || "N/A"}</h4>}</div></div>
+                <div className="detail-item"><div className="icon-badge yellow"><FaCalendarAlt /></div><div><label>DOB</label>{isEditing ? (<input type="date" name="dob" className="edit-input-sm" value={userData.dob} onChange={handleChange} />) : <h4>{userData.dob || "N/A"}</h4>}</div></div>
             </div>
 
-            {/* --- ACTION BUTTONS --- */}
-            <div className="action-buttons">
+            <div className="address-section">
+                <h3><FaMapMarkerAlt /> Address Details</h3>
                 {isEditing ? (
-                    <div style={{display: 'flex', gap: '10px'}}>
-                        <button className="save-btn" style={{flex:1}} onClick={handleSaveProfile}>
-                            <FaSave /> Save
-                        </button>
-                        <button className="cancel-btn" style={{flex:1}} onClick={() => setIsEditing(false)}>
-                            <FaTimes /> Cancel
-                        </button>
+                    <div className="address-edit-grid">
+                        <input name="at" placeholder="At" value={userData.address.at} onChange={handleAddressChange} />
+                        <input name="post" placeholder="Post" value={userData.address.post} onChange={handleAddressChange} />
+                        <input name="taluka" placeholder="Taluka" value={userData.address.taluka} onChange={handleAddressChange} />
+                        <input name="district" placeholder="District" value={userData.address.district} onChange={handleAddressChange} />
+                        <input name="pincode" placeholder="Pincode" value={userData.address.pincode} onChange={handleAddressChange} />
                     </div>
                 ) : (
-                    <button className="edit-profile-btn" onClick={() => setIsEditing(true)}>
-                        <FaUserEdit /> Edit Profile
-                    </button>
+                    <p className="address-view">
+                        {userData.address.at ? `At. ${userData.address.at}, Post. ${userData.address.post}, Tq. ${userData.address.taluka}, Dist. ${userData.address.district} - ${userData.address.pincode}` : "Address not updated."}
+                    </p>
                 )}
-                
-                {loading && <p style={{color: "#3498db", fontSize:"0.8rem", textAlign: "center"}}>Processing...</p>}
             </div>
 
+            <div className="action-buttons">
+                {isEditing ? (
+                    <div className="btn-group">
+                        <button className="save-btn" onClick={handleSaveProfile} disabled={loading}>{loading ? "Saving..." : "Save Changes"}</button>
+                        <button className="cancel-btn" onClick={() => setIsEditing(false)}>Cancel</button>
+                    </div>
+                ) : (
+                    <button className="edit-profile-btn" onClick={() => setIsEditing(true)}><FaUserEdit /> Edit / Complete Profile</button>
+                )}
+            </div>
         </div>
+
       </div>
+
+      {/* 🔥 CROPPER MODAL */}
+      {isCropping && (
+        <div className="cropper-modal">
+            <div className="cropper-container">
+                <div className="crop-area">
+                    <Cropper
+                        image={imageSrc}
+                        crop={crop}
+                        zoom={zoom}
+                        aspect={1} // Square (1:1) for Circle
+                        onCropChange={setCrop}
+                        onCropComplete={onCropComplete}
+                        onZoomChange={setZoom}
+                        cropShape="round" // 🔥 Circular Shape
+                        showGrid={false}
+                    />
+                </div>
+                <div className="crop-controls">
+                    <div className="zoom-slider">
+                        <label>Zoom</label>
+                        <input 
+                            type="range" 
+                            value={zoom} min={1} max={3} step={0.1} 
+                            onChange={(e) => setZoom(e.target.value)} 
+                        />
+                    </div>
+                    <div className="crop-actions">
+                        <button className="cancel-btn" onClick={() => {setIsCropping(false); setImageSrc(null);}}>Cancel</button>
+                        <button className="save-btn" onClick={showCroppedImage} disabled={loading}>
+                            {loading ? "Uploading..." : "Set Profile Pic"}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+      )}
+
     </div>
   );
 };

@@ -178,3 +178,108 @@
   z-index: 1; transition: 0.4s;
 }
 .vip-card:hover .card-bg-icon { transform: rotate(0deg) scale(1.1); opacity: 0.15; }
+/* --- SPECIAL HOME BUTTON STYLE --- */
+.home-btn {
+    color: #3b82f6; /* Brand Blue */
+    background: rgba(59, 130, 246, 0.1); /* Light Blue BG */
+    width: 42px; height: 42px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.home-btn svg {
+    font-size: 1.2rem; /* Icon size fix */
+}
+
+/* Hover Effect */
+.home-btn:hover {
+    background: #3b82f6;
+    color: white !important; /* Icon white ho jayega */
+    box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4); /* Glow Effect */
+    transform: translateY(-2px);
+    border-color: #2563eb;
+}
+
+/* Dark Mode Support for this button */
+.dark-mode .home-btn {
+    background: rgba(59, 130, 246, 0.15);
+}
+.dark-mode .home-btn:hover {
+    background: #3b82f6;
+    color: white;
+}
+/* ... (पुराना CSS रखें, बस नीचे वाला code जोड़ दें) ... */
+
+.dept-pill {
+    color: #3b82f6; 
+    font-weight: bold; 
+    background: rgba(59,130,246,0.1); 
+    padding: 2px 8px; 
+    border-radius: 4px;
+}
+
+/* 🔥 NOTICE BOARD STYLES */
+.notice-board-section {
+    background: var(--card-bg);
+    padding: 20px;
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 10px var(--shadow-color);
+    margin-bottom: 30px;
+}
+
+.notice-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.notice-card {
+    background: var(--bg-color);
+    padding: 15px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-left: 4px solid #f59e0b; /* Orange Accent */
+}
+
+.notice-left { display: flex; gap: 15px; align-items: center; }
+
+.notice-avatar {
+    width: 40px; height: 40px; border-radius: 50%; overflow: hidden;
+    background: #ccc; flex-shrink: 0;
+}
+.notice-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.notice-content h4 { margin: 0 0 4px; font-size: 0.95rem; color: var(--heading-color); }
+.notice-content p { margin: 0 0 6px; font-size: 0.9rem; color: var(--text-color); }
+
+.target-badge {
+    background: #e0f2fe; color: #0284c7; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px;
+}
+
+.time-badge {
+    font-size: 0.75rem; color: #ef4444; display: flex; align-items: center; gap: 4px; font-weight: 600;
+}
+
+.delete-notice-btn {
+    background: white; border: 1px solid #ef4444; color: #ef4444;
+    width: 35px; height: 35px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: 0.2s;
+}
+.delete-notice-btn:hover { background: #ef4444; color: white; }
+
+.empty-notice-state {
+    text-align: center; padding: 30px; color: var(--subtext-color);
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+}
+
+/* Modal Inputs */
+.modal-label { margin: 0 0 10px; color: #333; font-size: 0.9rem; display: block; }
+.modal-sublabel { font-size: 0.8rem; color: #666; font-weight: bold; margin-bottom: 5px; display: block; }

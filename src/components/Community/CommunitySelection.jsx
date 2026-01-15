@@ -1,6 +1,6 @@
 import React from "react";
 import "./CommunitySelection.css";
-import { FaUsers, FaArrowLeft, FaComments } from "react-icons/fa";
+import { FaUsers, FaArrowLeft, FaComments, FaUserGraduate } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
 const CommunitySelection = () => {
@@ -24,9 +24,18 @@ const CommunitySelection = () => {
     { 
       id: "3rd-year-community", 
       title: "3rd Year Hub", 
-      desc: "Network for final years.", 
+      desc: "Network for juniors.", 
       color: "#009688", // Teal
       iconBg: "linear-gradient(135deg, #4db6ac 0%, #00695c 100%)"
+    },
+    // 👇 ADDED 4TH YEAR HERE
+    { 
+      id: "4th-year-community", 
+      title: "4th Year Hub", 
+      desc: "Final year projects & placement talk.", 
+      color: "#e67e22", // Orange
+      iconBg: "linear-gradient(135deg, #f39c12 0%, #d35400 100%)",
+      icon: <FaUserGraduate /> // Special Icon for Seniors
     },
   ];
 
@@ -50,15 +59,17 @@ const CommunitySelection = () => {
           <div 
             key={index} 
             className="comm-card"
-            onClick={() => navigate(`/admin/chat/${item.id}`)} // Reusing Chat Page
+            onClick={() => navigate(`/admin/chat/${item.id}`)} 
           >
             <div className="comm-icon" style={{background: item.iconBg}}>
-              <FaUsers />
+              {item.icon ? item.icon : <FaUsers />}
             </div>
             <h3>{item.title}</h3>
             <p>{item.desc}</p>
             
-            <button className="comm-btn">Enter Hub <FaComments /></button>
+            <button className="comm-btn" style={{borderColor: item.color, color: item.color}}>
+                Enter Hub <FaComments style={{marginLeft:'5px'}}/>
+            </button>
 
             {/* Decoration */}
             <div className="decor-circle" style={{background: item.color}}></div>

@@ -2,136 +2,147 @@
 .profile-container {
   min-height: 100vh;
   background: #f0f2f5;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-  font-family: 'Poppins', sans-serif; /* Modern Font */
-  position: relative;
-  overflow: hidden;
+  display: flex; justify-content: center; align-items: center;
+  padding: 20px; font-family: 'Poppins', sans-serif;
+  position: relative; overflow: hidden;
 }
 
-/* Background Blurs */
-.bg-shape {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  z-index: 0;
-}
+/* BLURS */
+.bg-shape { position: absolute; border-radius: 50%; filter: blur(80px); z-index: 0; }
 .shape-1 { width: 300px; height: 300px; background: #6a11cb; top: -50px; left: -50px; opacity: 0.4; }
 .shape-2 { width: 400px; height: 400px; background: #2575fc; bottom: -100px; right: -100px; opacity: 0.3; }
 
 /* --- CARD WRAPPER --- */
 .profile-wrapper {
-  width: 100%;
-  max-width: 450px;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(20px); /* Glass Effect */
-  border-radius: 25px;
+  width: 100%; max-width: 500px; /* Thoda wide kiya hai */
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px); border-radius: 25px;
   box-shadow: 0 20px 50px rgba(0,0,0,0.1);
-  overflow: hidden;
-  z-index: 1;
-  border: 1px solid rgba(255,255,255,0.5);
-  animation: popIn 0.5s ease;
+  overflow: hidden; z-index: 1; border: 1px solid white;
 }
 
 /* --- COVER & AVATAR --- */
 .profile-cover {
-  height: 140px;
+  height: 150px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: flex-end;
+  position: relative; display: flex; justify-content: center; align-items: flex-end;
 }
-
 .back-btn-float {
   position: absolute; top: 15px; left: 15px;
   background: rgba(255,255,255,0.2); border: none; color: white;
   padding: 8px 15px; border-radius: 20px; cursor: pointer;
-  backdrop-filter: blur(5px); display: flex; align-items: center; gap: 5px;
-  font-weight: 500; transition: 0.3s;
+  display: flex; align-items: center; gap: 5px; font-weight: 500;
 }
-.back-btn-float:hover { background: rgba(255,255,255,0.4); }
-
-.profile-pic-container {
-  position: absolute; bottom: -50px;
-}
-
+.profile-pic-container { position: absolute; bottom: -50px; }
 .profile-pic {
-  width: 100px; height: 100px;
-  background: white;
-  border-radius: 50%;
-  border: 4px solid white;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 3rem; color: #764ba2;
+  width: 110px; height: 110px; background: white; border-radius: 50%;
+  border: 4px solid white; object-fit: cover;
   box-shadow: 0 10px 20px rgba(0,0,0,0.15);
 }
-
 .cam-icon {
-  position: absolute; bottom: 5px; right: 0;
-  background: #333; color: white; padding: 6px;
-  border-radius: 50%; font-size: 0.8rem; cursor: pointer;
+  position: absolute; bottom: 5px; right: 0; background: #333; color: white;
+  padding: 8px; border-radius: 50%; font-size: 0.9rem; cursor: pointer;
 }
 
-/* --- CONTENT SECTION --- */
-.profile-content {
-  padding: 60px 25px 30px; /* Top padding avatar ke liye */
-  text-align: center;
-}
+/* --- CONTENT --- */
+.profile-content { padding: 60px 25px 30px; text-align: center; }
 
 .info-header h1 { margin: 0; font-size: 1.6rem; color: #333; }
-.role-text { color: #888; font-size: 0.9rem; margin: 5px 0; font-weight: 500; }
-.bio-text { font-style: italic; color: #555; margin-top: 10px; font-size: 0.95rem; }
+.role-text { color: #667eea; font-size: 0.9rem; margin: 5px 0; font-weight: 600; }
+.bio-text { font-style: italic; color: #555; margin-top: 10px; font-size: 0.9rem; }
 
-.divider { border: none; height: 1px; background: #eee; margin: 20px 0; }
+.divider { border: none; height: 1px; background: #eee; margin: 25px 0; }
 
-/* --- INPUTS FOR EDIT --- */
-.edit-input {
-  width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 8px;
-  text-align: center; font-size: 0.9rem; margin-top: 5px;
+/* --- GRID DETAILS --- */
+.details-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: left;
 }
-.name-input { font-size: 1.4rem; font-weight: bold; color: #333; border: 1px dashed #ccc; }
-.edit-textarea {
-  width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 8px;
-  margin-top: 10px; font-family: inherit; resize: none;
-}
-
-/* --- DETAILS GRID --- */
-.details-grid { text-align: left; display: flex; flex-direction: column; gap: 15px; }
-
 .detail-item {
-  display: flex; align-items: center; gap: 15px;
-  background: #f9f9fc; padding: 12px; border-radius: 12px;
+    background: #f8f9fa; padding: 12px; border-radius: 12px;
+    display: flex; align-items: center; gap: 10px;
+}
+.icon-badge {
+    width: 35px; height: 35px; border-radius: 8px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 1rem;
 }
 
-.icon-badge {
-  width: 40px; height: 40px; border-radius: 10px;
-  display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
-}
+/* COLORS */
 .blue { background: #e3f2fd; color: #1e88e5; }
 .purple { background: #f3e5f5; color: #8e24aa; }
 .green { background: #e8f5e9; color: #43a047; }
+.orange { background: #fff3e0; color: #f57c00; }
+.red { background: #ffebee; color: #e53935; }
+.yellow { background: #fff9c4; color: #fbc02d; }
 
-.detail-item label { display: block; font-size: 0.75rem; color: #999; text-transform: uppercase; }
-.detail-item h4 { margin: 0; color: #444; font-size: 0.95rem; }
+.detail-item label { display: block; font-size: 0.7rem; color: #999; text-transform: uppercase; }
+.detail-item h4 { margin: 0; color: #444; font-size: 0.9rem; word-break: break-word; }
+
+/* EDIT INPUTS SMALL */
+.edit-input-sm {
+    width: 100%; padding: 5px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.85rem;
+}
+
+/* --- ADDRESS SECTION --- */
+.address-section {
+    margin-top: 25px; text-align: left; background: #fff; padding: 15px;
+    border-radius: 12px; border: 1px solid #eee;
+}
+.address-section h3 { font-size: 1rem; color: #333; margin-bottom: 10px; display: flex; gap: 8px; align-items: center; }
+
+.address-view { color: #555; font-size: 0.95rem; line-height: 1.5; }
+
+.address-edit-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+.address-edit-grid input {
+    padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.9rem;
+}
+.address-edit-grid input:last-child { grid-column: span 2; } /* Pincode Full width or adjust */
 
 /* --- BUTTONS --- */
-.action-buttons { margin-top: 30px; display: flex; flex-direction: column; gap: 10px; }
-
-.edit-profile-btn {
-  background: #333; color: white; padding: 12px; border-radius: 12px;
-  border: none; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
-  transition: 0.3s;
+.action-buttons { margin-top: 25px; }
+.btn-group { display: flex; gap: 10px; }
+.edit-profile-btn, .save-btn, .cancel-btn {
+    width: 100%; padding: 12px; border-radius: 12px; border: none; font-weight: 600; cursor: pointer;
+    display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.3s;
 }
-.edit-profile-btn:hover { background: #000; transform: translateY(-2px); }
 
-.save-btn { background: #2ecc71; color: white; padding: 12px; border-radius: 12px; border: none; cursor: pointer; font-weight: bold; }
-.cancel-btn { background: #e74c3c; color: white; padding: 12px; border-radius: 12px; border: none; cursor: pointer; font-weight: bold; }
+.edit-profile-btn { background: #333; color: white; }
+.edit-profile-btn:hover { background: #000; }
 
-.logout-link {
-  background: none; border: none; color: #e74c3c; font-weight: 600; cursor: pointer; margin-top: 10px;
+.save-btn { background: #2ecc71; color: white; }
+.cancel-btn { background: #e74c3c; color: white; }
+
+/* RESPONSIVE */
+@media (max-width: 400px) {
+    .details-grid { grid-template-columns: 1fr; }
 }
-.logout-link:hover { text-decoration: underline; }
+/* --- CROPPER MODAL STYLES --- */
+.cropper-modal {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85); z-index: 2000;
+    display: flex; justify-content: center; align-items: center;
+}
 
-@keyframes popIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+.cropper-container {
+    width: 90%; max-width: 500px; height: 500px;
+    background: white; border-radius: 20px;
+    display: flex; flex-direction: column; overflow: hidden;
+    position: relative;
+}
+
+.crop-area {
+    position: relative; flex: 1; background: #333;
+}
+
+.crop-controls {
+    padding: 20px; background: white;
+}
+
+.zoom-slider {
+    display: flex; align-items: center; gap: 15px; margin-bottom: 20px;
+}
+.zoom-slider label { font-weight: bold; color: #555; }
+.zoom-slider input { flex: 1; cursor: pointer; }
+
+.crop-actions { display: flex; gap: 10px; }

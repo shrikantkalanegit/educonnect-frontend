@@ -1,11 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./AdminLogin.css"; 
-import { FaUserShield, FaLock, FaEnvelope, FaUser, FaCamera } from "react-icons/fa";
+import { FaUserShield, FaLock, FaEnvelope, FaUser, FaCamera, FaTimes, FaArrowRight } from "react-icons/fa"; // Icons updated
 
-// 👇 Firebase Imports
 import { auth, db } from "../../firebase";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 
 const AdminLogin = () => {
@@ -18,23 +17,26 @@ const AdminLogin = () => {
     password: ""
   });
   
-  // 📸 Image State (Naya joda hai)
+  // 📸 Image State (Preserved)
   const [image, setImage] = useState(null);
-  
   const [loading, setLoading] = useState(false);
+
+  // 🔥 FORGOT PASSWORD STATES (New)
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // ☁️ CLOUDINARY UPLOAD FUNCTION (Naya joda hai)
+  // ☁️ CLOUDINARY UPLOAD FUNCTION (Preserved)
   const uploadToCloudinary = async () => {
-    if (!image) return ""; // Agar photo nahi chuni to khali return karo
+    if (!image) return ""; 
 
     const data = new FormData();
     data.append("file", image);
-    data.append("upload_preset", "ml_default"); // ✅ Aapka Preset
-    data.append("cloud_name", "dpfz1gq4y");     // ✅ Aapka Cloud Name
+    data.append("upload_preset", "ml_default"); 
+    data.append("cloud_name", "dpfz1gq4y");     
 
     try {
       const res = await fetch("https://api.cloudinary.com/v1_1/dpfz1gq4y/image/upload", {
@@ -42,11 +44,27 @@ const AdminLogin = () => {
         body: data
       });
       const fileData = await res.json();
-      return fileData.secure_url; // Cloudinary se mila hua URL wapas karega
+      return fileData.secure_url; 
     } catch (error) {
       console.error("Image Upload Error:", error);
       alert("Photo upload failed!");
       return "";
+    }
+  };
+
+  // 🔥 FORGOT PASSWORD LOGIC (New)
+  const handleForgotPassword = async () => {
+    if (!resetEmail) {
+      alert("⚠️ Please enter your Admin Email first!");
+      return;
+    }
+    try {
+      await sendPasswordResetEmail(auth, resetEmail);
+      alert("✅ Reset Link Sent to your Email!");
+      setShowResetModal(false);
+      setResetEmail("");
+    } catch (error) {
+      alert("❌ Error: " + error.message);
     }
   };
 
@@ -59,8 +77,6 @@ const AdminLogin = () => {
     try {
       if (isSignup) {
         // 🟢 SIGN UP LOGIC
-        
-        // Step 1: Check Invitation
         const allowedRef = doc(db, "allowed_admins", email);
         const allowedSnap = await getDoc(allowedRef);
 
@@ -70,33 +86,29 @@ const AdminLogin = () => {
           return;
         }
 
-        // 📸 Step 2: Photo Upload karo (Account banne se pehle)
         const profilePicUrl = await uploadToCloudinary();
 
-        // Step 3: Account Banao
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        // Step 4: Admin Data Save karo (Photo URL ke sath)
         await setDoc(doc(db, "admins", user.uid), {
           name: name,
           email: email,
           role: "admin",
-          profilePic: profilePicUrl, // ✅ URL yaha save hoga
+          profilePic: profilePicUrl,
           createdAt: new Date().toISOString()
         });
 
         alert("🎉 Admin Account Created Successfully!");
-        navigate("/admin-dashboard");
+        navigate("/admin/select-dept"); // New Flow
 
       } else {
         // 🔵 LOGIN LOGIC
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        
         const adminDoc = await getDoc(doc(db, "admins", userCredential.user.uid));
         
         if (adminDoc.exists()) {
-          navigate("/admin-dashboard");
+          navigate("/admin/select-dept"); // New Flow
         } else {
           alert("❌ Ye Admin Account nahi hai!");
           auth.signOut(); 
@@ -118,6 +130,13 @@ const AdminLogin = () => {
   return (
     <div className="admin-login-container">
       <div className="admin-login-card">
+        
+        {/* 👇 ROLE SWITCHER (Back to Student) */}
+        <div className="role-switch-header">
+          <button className="rs-btn" onClick={() => navigate("/")}>Student</button>
+          <button className="rs-btn active">Admin</button>
+        </div>
+
         <div className="admin-icon-circle"><FaUserShield /></div>
         <h2>{isSignup ? "New Admin Registration" : "Admin Portal"}</h2>
         <p className="subtitle">{isSignup ? "Secure Staff Onboarding" : "Authorized Personnel Only"}</p>
@@ -130,14 +149,14 @@ const AdminLogin = () => {
                 <input type="text" name="name" placeholder="Full Name" value={formData.name} onChange={handleChange} required />
               </div>
               
-              {/* 👇 IMAGE INPUT (Naya joda hai) */}
-              <div className="input-group" style={{border: "1px dashed #ccc", padding: "5px"}}>
-                <FaCamera className="input-icon" style={{color: "#666"}}/>
+              {/* Image Input (Preserved) */}
+              <div className="input-group" style={{border: "1px dashed #ccc", padding: "5px", background: "#f9f9f9", borderRadius: "8px"}}>
+                <FaCamera className="input-icon" style={{color: "#666", top: "15px"}}/>
                 <input 
                   type="file" 
                   accept="image/*"
                   onChange={(e) => setImage(e.target.files[0])}
-                  style={{border: "none", outline: "none", paddingLeft: "10px"}}
+                  style={{border: "none", outline: "none", paddingLeft: "10px", width: "90%"}}
                 />
               </div>
             </>
@@ -151,9 +170,16 @@ const AdminLogin = () => {
             <FaLock className="input-icon" />
             <input type="password" name="password" placeholder="Secure Password" value={formData.password} onChange={handleChange} required />
           </div>
+
+          {/* 🔥 FORGOT PASSWORD LINK */}
+          {!isSignup && (
+            <div className="forgot-pass-text" onClick={() => setShowResetModal(true)}>
+                Forgot Password?
+            </div>
+          )}
           
           <button type="submit" className="login-btn" disabled={loading}>
-            {loading ? "Processing..." : (isSignup ? "Create Admin Account" : "Access Dashboard")}
+            {loading ? "Processing..." : (isSignup ? "Create Admin Account" : "Access Dashboard")} <FaArrowRight style={{marginLeft: "8px"}}/>
           </button>
         </form>
 
@@ -163,6 +189,26 @@ const AdminLogin = () => {
           </p>
         </div>
       </div>
+
+      {/* 🔥 FORGOT PASSWORD MODAL */}
+      {showResetModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <button className="close-modal" onClick={() => setShowResetModal(false)}><FaTimes /></button>
+            <h3 style={{color:'#2c3e50'}}>Reset Password 🔐</h3>
+            <p style={{color:'#666'}}>Enter your official admin email.</p>
+            <input 
+              type="email" 
+              className="modal-input"
+              placeholder="admin@college.edu"
+              value={resetEmail}
+              onChange={(e) => setResetEmail(e.target.value)}
+            />
+            <button className="login-btn" onClick={handleForgotPassword}>Send Reset Link</button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

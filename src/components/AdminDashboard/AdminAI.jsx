@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown"; 
-import { FaRobot, FaPaperPlane, FaArrowLeft, FaEraser, FaDatabase, FaPlusCircle, FaCloudUploadAlt, FaBrain, FaBolt } from "react-icons/fa";
+import { FaRobot, FaPaperPlane, FaArrowLeft, FaEraser, FaPlusCircle, FaCloudUploadAlt, FaBolt, FaDatabase } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import "./AdminAI.css"; 
 
@@ -8,40 +8,46 @@ import "./AdminAI.css";
 import { realtimeDb as db } from "../../firebase";
 import { ref, onValue, push } from "firebase/database";
 
-// STATIC BRAIN (Backup Data)
+// 🧠 STATIC BRAIN (Basic College Data)
 const STATIC_BRAIN = [
-    { keywords: ["holiday", "rain", "closed", "chutti"], answer: "### 📢 NOTICE: Holiday Declared\n\nDue to heavy rain, the college remains **closed tomorrow**." },
-    { keywords: ["exam", "mid-term", "date"], answer: "### 📝 Mid-Term Exam\n\nStarts: **10th Oct**\nTime: **10:00 AM**" },
-    { keywords: ["fee", "last date"], answer: "### 💰 Fee Deadline\n\nPlease pay fees by the **30th of this month**." },
-    { keywords: ["java", "syllabus"], answer: "**☕ Java Syllabus:**\n- OOPs, Inheritance\n- JDBC & MySQL" }
+    { keywords: ["hi", "hello", "hey"], answer: "Hello! 👋 I am your Campus Assistant. Ask me about exams, fees, or holidays." },
+    { keywords: ["holiday", "chutti", "leave", "closed"], answer: "### 🗓️ Holiday Status\nCheck the **Notice Board** on Dashboard for official holiday updates." },
+    { keywords: ["exam", "paper", "date sheet", "schedule"], answer: "### 📝 Exam Update\nMid-terms usually happen in **October**. Finals in **March**. Check the 'Exams' tab." },
+    { keywords: ["fee", "money", "payment", "deadline"], answer: "### 💰 Fee Info\nPlease pay your semester fees before the **30th**. Late fees may apply!" },
+    { keywords: ["admin", "contact", "principal"], answer: "**📞 Contact Admin:**\nOffice Hours: 10 AM - 4 PM\nEmail: admin@college.edu" },
+    { keywords: ["java", "python", "c++", "subject"], answer: "For syllabus and notes, please visit the **Manage Subjects** section." },
+    { keywords: ["who are you", "bot", "ai"], answer: "I am a **Self-Learning System** made for EduConnect. 🤖" }
 ];
 
 const AdminAI = () => {
   const navigate = useNavigate();
-  
-  // 🔑 KEY CHANGE: Confirm karein ki ye key sahi hai
-  const GEMINI_API_KEY = "AIzaSyBEFhdU4FcXJ9JsFXJuKNwTmoKy1-CzfVw"; 
 
   const [messages, setMessages] = useState([
-    { text: "Hello! I am **EduConnect AI**. 🤖\nConnected to Asia Server. Ask me anything!", sender: "ai" }
+    { text: "Hello! 🤖\nI am running on **Campus Server Mode**. Ask me anything.", sender: "ai" }
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  
+  // 🧠 Full Knowledge (Static + Firebase)
   const [fullKnowledge, setFullKnowledge] = useState(STATIC_BRAIN);
+  
+  // Teach Modal
   const [showTeachModal, setShowTeachModal] = useState(false); 
   const [newQ, setNewQ] = useState("");
   const [newA, setNewA] = useState("");
   
   const chatEndRef = useRef(null);
 
-  // 🔥 1. SYNC DATABASE (Corrected Region URL via firebase.js)
+  // 🔥 1. SYNC DATABASE (Learning from Firebase)
   useEffect(() => {
     if (!db) return;
     const aiRef = ref(db, 'ai_learning_data');
     onValue(aiRef, (snapshot) => {
       const cloudData = snapshot.val();
       if (cloudData) {
-        setFullKnowledge([...STATIC_BRAIN, ...Object.values(cloudData)]);
+        // Firebase data ko array mein convert karke merge karo
+        const learnedData = Object.values(cloudData);
+        setFullKnowledge([...STATIC_BRAIN, ...learnedData]);
       }
     });
   }, []);
@@ -50,53 +56,20 @@ const AdminAI = () => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // 🧠 2. LOCAL SEARCH
-  const findLocalAnswer = (query) => {
+  // 🧠 2. SMART SEARCH (Fuzzy Logic)
+  const findBestAnswer = (query) => {
     const q = query.toLowerCase();
+    
+    // Reverse loop taaki Latest seekha hua pehle mile
     for (let i = fullKnowledge.length - 1; i >= 0; i--) {
         const item = fullKnowledge[i];
+        
+        // Agar keywords match karein
         if (item.keywords && item.keywords.some(k => q.includes(k.toLowerCase()))) {
             return item.answer;
         }
     }
     return null; 
-  };
-
-  // 🌍 3. GOOGLE GEMINI PRO (Stable Version)
-  const askGemini = async (query) => {
-    try {
-      console.log("⚡ Asking Gemini Pro...");
-      
-      // FIX: Changed model to 'gemini-pro' to avoid 404 Error
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ 
-                parts: [{ text: `You are a helpful college assistant. Answer briefly: ${query}` }] 
-            }]
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (data.error) {
-          console.error("Gemini Error:", data.error);
-          return null;
-      }
-
-      if (data.candidates && data.candidates[0].content) {
-          return data.candidates[0].content.parts[0].text;
-      }
-      return null;
-
-    } catch (error) {
-      console.error("Network Error:", error);
-      return null;
-    }
   };
 
   const handleSend = async () => {
@@ -107,44 +80,49 @@ const AdminAI = () => {
     setInput(""); 
     setLoading(true);
 
-    // Step 1: Local Check
-    let answer = findLocalAnswer(textToSend);
-    let source = "local";
+    // Thoda fake delay taaki user ko lage bot soch raha hai
+    setTimeout(() => {
+        const answer = findBestAnswer(textToSend);
+        setLoading(false);
 
-    // Step 2: Cloud Check
-    if (!answer) {
-        const cloudAns = await askGemini(textToSend);
-        if (cloudAns) {
-            answer = cloudAns;
-            source = "cloud";
+        if (answer) {
+            setMessages(prev => [...prev, { text: answer, sender: "ai", source: "db" }]);
+        } else {
+            // Agar answer nahi mila to Teach Mode Offer karo
+            setMessages(prev => [...prev, { 
+                text: `❌ Sorry, I don't know about "**${textToSend}**" yet.\n\nTeach me this answer so I can help next time! 👇`, 
+                sender: "ai", 
+                isUnknown: true,
+                failedQuery: textToSend 
+            }]);
         }
-    }
-
-    setLoading(false);
-
-    if (answer) {
-        setMessages(prev => [...prev, { text: answer, sender: "ai", source: source }]);
-    } else {
-        setMessages(prev => [...prev, { text: "❌ I don't know this yet.\n\nTeach me so I can remember!", sender: "ai", isUnknown: true }]);
-    }
+    }, 600);
   };
 
-  // 💾 TEACH FUNCTION
+  // 💾 TEACH FUNCTION (Firebase mein save karega)
   const handleTeachAI = async () => {
-    if(!newQ || !newA) return;
+    if(!newQ || !newA) return alert("Please fill both fields!");
+    
     const newEntry = {
-        keywords: newQ.toLowerCase().split(",").map(k => k.trim()), 
+        keywords: newQ.toLowerCase().split(",").map(k => k.trim()), // Comma separated keywords
         answer: newA,
         addedAt: Date.now()
     };
+
     try {
         await push(ref(db, 'ai_learning_data'), newEntry);
         setShowTeachModal(false);
         setNewQ(""); setNewA("");
-        setMessages(prev => [...prev, { text: "✅ Saved to Database!", sender: "ai" }]);
+        setMessages(prev => [...prev, { text: "✅ Thanks! I have learned this now.", sender: "ai" }]);
     } catch (error) {
-        alert("Save Failed! Check Console.");
+        alert("Save Failed! Check Internet.");
     }
+  };
+
+  // Auto-fill keywords when opening modal
+  const openTeachModal = (query) => {
+      setNewQ(query);
+      setShowTeachModal(true);
   };
 
   return (
@@ -153,20 +131,35 @@ const AdminAI = () => {
         <button onClick={() => navigate('/admin-dashboard')} className="back-btn-ai">
             <FaArrowLeft />
         </button>
-        <h3><FaBolt style={{color: "#f1c40f"}} /> EduConnect AI</h3>
+        <h3><FaBolt style={{color: "#f1c40f"}} /> Campus Bot <span style={{fontSize:'0.7rem', opacity:0.7}}>(Offline Mode)</span></h3>
         <button className="clear-btn" onClick={() => setMessages([])} title="Clear Chat">
             <FaEraser />
         </button>
       </header>
 
+      {/* TEACH MODAL */}
       {showTeachModal && (
-          <div className="teach-modal">
-              <div className="modal-content">
-                  <h4>🧠 Teach AI</h4>
-                  <input placeholder="Keywords (e.g. sports)" value={newQ} onChange={e => setNewQ(e.target.value)} />
-                  <textarea placeholder="Answer (e.g. Next week)" value={newA} onChange={e => setNewA(e.target.value)} />
-                  <button onClick={handleTeachAI} className="save-btn"><FaCloudUploadAlt/> Save</button>
-                  <button onClick={() => setShowTeachModal(false)} className="close-btn" style={{marginTop:'5px', background:'grey'}}>Cancel</button>
+          <div className="teach-modal-overlay">
+              <div className="teach-modal-content">
+                  <h4>🧠 Teach New Topic</h4>
+                  <p>Keywords (separated by comma):</p>
+                  <input 
+                    placeholder="e.g. sports, cricket, ground" 
+                    value={newQ} 
+                    onChange={e => setNewQ(e.target.value)} 
+                    className="tm-input"
+                  />
+                  <p>What should I reply?</p>
+                  <textarea 
+                    placeholder="e.g. The sports ground is open from 4 PM." 
+                    value={newA} 
+                    onChange={e => setNewA(e.target.value)} 
+                    className="tm-textarea"
+                  />
+                  <div className="tm-actions">
+                    <button onClick={handleTeachAI} className="save-btn"><FaCloudUploadAlt/> Save</button>
+                    <button onClick={() => setShowTeachModal(false)} className="close-btn">Cancel</button>
+                  </div>
               </div>
           </div>
       )}
@@ -175,28 +168,32 @@ const AdminAI = () => {
         {messages.map((msg, index) => (
           <div key={index} className={`message ${msg.sender === "user" ? "user-msg" : "ai-msg"}`}>
              {msg.sender === "ai" && <FaRobot className="msg-icon" />}
+             
              <div className="msg-content">
-                {msg.source === "local" && <span style={{fontSize:'10px', background:'#00cec9', color:'white', padding:'2px 5px', borderRadius:'4px', marginBottom:'5px', display:'inline-block'}}>Campus DB</span>}
-                {msg.source === "cloud" && <span style={{fontSize:'10px', background:'#f1c40f', color:'black', padding:'2px 5px', borderRadius:'4px', marginBottom:'5px', display:'inline-block'}}>Gemini Pro</span>}
+                {/* Source Badge */}
+                {msg.source === "db" && (
+                    <span className="source-badge"><FaDatabase/> Campus DB</span>
+                )}
                 
                 <ReactMarkdown>{msg.text}</ReactMarkdown>
                 
+                {/* Agar AI ko nahi pata, to Teach Button dikhao */}
                 {msg.isUnknown && (
-                    <button className="teach-btn" onClick={() => { setShowTeachModal(true); }}>
-                        <FaPlusCircle /> Teach Me
+                    <button className="teach-btn" onClick={() => openTeachModal(msg.failedQuery)}>
+                        <FaPlusCircle /> Teach Me Answer
                     </button>
                 )}
              </div>
           </div>
         ))}
-        {loading && <div className="loading-dots">Thinking...</div>}
+        {loading && <div className="loading-dots">Searching database...</div>}
         <div ref={chatEndRef} />
       </div>
 
       <div className="input-area">
         <input 
             type="text" 
-            placeholder="Ask anything..." 
+            placeholder="Type 'Exam', 'Holiday', 'Fee'..." 
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSend()}

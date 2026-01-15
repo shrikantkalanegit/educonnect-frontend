@@ -1,4 +1,4 @@
-/* --- FULL PAGE BACKGROUND (Dark Professional Theme) --- */
+/* --- FULL PAGE BACKGROUND --- */
 .admin-login-container {
   display: flex;
   justify-content: center;
@@ -18,7 +18,37 @@
   width: 100%;
   max-width: 350px;
   animation: fadeIn 0.5s ease;
+  position: relative;
 }
+
+/* --- ROLE SWITCHER (New) --- */
+.role-switch-header {
+    display: flex;
+    justify-content: center;
+    background: #f1f2f6;
+    border-radius: 20px;
+    padding: 4px;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+}
+.rs-btn {
+    flex: 1;
+    border: none;
+    padding: 8px;
+    border-radius: 15px;
+    cursor: pointer;
+    background: transparent;
+    color: #7f8c8d;
+    font-weight: 600;
+    transition: 0.3s;
+}
+.rs-btn.active {
+    background: #2c3e50; /* Admin Color */
+    color: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+.rs-btn:hover:not(.active) { background: #e2e6ea; }
+
 
 /* --- ADMIN ICON CIRCLE --- */
 .admin-icon-circle {
@@ -74,6 +104,18 @@ h2 {
   border-color: #d4af37; /* Focus hone par Gold Border */
 }
 
+/* --- FORGOT PASSWORD LINK (New) --- */
+.forgot-pass-text {
+    text-align: right;
+    font-size: 0.85rem;
+    color: #e74c3c;
+    cursor: pointer;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+.forgot-pass-text:hover { text-decoration: underline; }
+
+
 /* --- BUTTON --- */
 .login-btn {
   width: 100%; 
@@ -84,9 +126,10 @@ h2 {
   border-radius: 8px; 
   font-weight: bold; 
   cursor: pointer; 
-  margin-top: 10px; 
+  margin-top: 5px; 
   transition: 0.3s;
   font-size: 1rem;
+  display: flex; justify-content: center; align-items: center;
 }
 
 .login-btn:hover { 
@@ -98,7 +141,7 @@ h2 {
   cursor: not-allowed;
 }
 
-/* --- 👇 NEW TOGGLE LINK STYLE (Iske liye update zaroori tha) 👇 --- */
+/* --- TOGGLE LINK --- */
 .toggle-link {
   margin-top: 20px;
   border-top: 1px solid #eee;
@@ -119,6 +162,28 @@ h2 {
   color: #2c3e50;
   text-decoration: underline;
 }
+
+/* --- MODAL STYLES (New) --- */
+.modal-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px);
+  display: flex; justify-content: center; align-items: center; z-index: 1000;
+}
+.modal-content {
+  background: white; padding: 30px; border-radius: 15px;
+  width: 90%; max-width: 350px; text-align: center; position: relative;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+  animation: popIn 0.3s ease;
+}
+@keyframes popIn { from {transform: scale(0.9); opacity: 0;} to {transform: scale(1); opacity: 1;} }
+
+.close-modal {
+    position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #888;
+}
+.modal-input {
+    width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; margin: 15px 0; outline: none;
+}
+.modal-input:focus { border-color: #d4af37; }
 
 /* --- ANIMATION --- */
 @keyframes fadeIn { 
