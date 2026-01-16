@@ -5,25 +5,20 @@ import { useNavigate } from "react-router-dom";
 import { auth, db } from "../../firebase"; 
 import { collection, query, orderBy, onSnapshot, doc, getDoc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
-import { FaBookOpen, FaUsers, FaBook, FaChartLine, FaBell, FaCalendarAlt, FaQrcode, FaGraduationCap } from "react-icons/fa";
+import { FaBookOpen, FaUsers, FaBook, FaChartLine, FaBell, FaCalendarAlt, FaGraduationCap } from "react-icons/fa";
 
 const HomePage = () => {
   const navigate = useNavigate();
   const [userName, setUserName] = useState("Student");
-  
   const [studentData, setStudentData] = useState({ department: "", year: "" }); 
   const [notices, setNotices] = useState([]);
   
-  // 🔥 FIX: Removed unused setters (setPresentCount, setAttendancePercentage)
-  // Abhi ke liye ye bas static/demo values rahenge
   const [presentCount] = useState(0); 
   const [attendancePercentage] = useState(75);
 
   useEffect(() => {
-    // 1. Check Auth & Fetch Student Details
     const unsubAuth = onAuthStateChanged(auth, async (user) => {
-      if (!user) return; // Wait for login
-      
+      if (!user) return; 
       const role = localStorage.getItem("userRole");
       if (role === "admin") { navigate("/admin-dashboard"); return; }
 
@@ -32,20 +27,17 @@ const HomePage = () => {
       try {
         const docRef = doc(db, "users", user.uid);
         const docSnap = await getDoc(docRef);
-        
         if (docSnap.exists()) {
             const data = docSnap.data();
             setStudentData({ department: data.department, year: data.year });
-            
-            // Fetch Notices
             fetchAndFilterNotices(data.department, data.year);
         }
       } catch (e) { console.error("Error fetching user data:", e); }
     });
-
     return () => unsubAuth();
   }, [navigate]);
 
+  // 🔥 GLOBAL + DEPT NOTICE FILTER
   const fetchAndFilterNotices = (userDept, userYear) => {
     const noticesRef = collection(db, "notices");
     const qNotice = query(noticesRef, orderBy("createdAt", "desc"));
@@ -57,8 +49,13 @@ const HomePage = () => {
         snapshot.docs.forEach(doc => {
             const data = doc.data();
             
-            const isDeptMatch = data.department === userDept;
-            const isYearMatch = data.targetYear === "All Years" || data.targetYear === userYear;
+            // 1. Department Match: "My Dept" OR "Global"
+            const isDeptMatch = (data.department === userDept) || (data.department === "Global");
+
+            // 2. Year Match: "My Year" OR "All Years"
+            const isYearMatch = (data.targetYear === "All Years") || (data.targetYear === userYear);
+
+            // 3. Expiry Check
             const isNotExpired = data.expiresAt ? data.expiresAt.toMillis() > now : true;
 
             if (isDeptMatch && isYearMatch && isNotExpired) {
@@ -85,39 +82,23 @@ const HomePage = () => {
   return (
     <div className="student-wrapper"> 
       <Navbar />
-      
       <div className="home-container">
-        
-        {/* HERO SECTION */}
         <header className="hero-section">
           <div className="hero-content">
             <div className="hero-text">
                 <h1>Hello, {userName}! <FaGraduationCap className="hat-icon"/></h1>
                 <p>Welcome to <strong>{studentData.department || "EduConnect"}</strong> Dashboard.</p>
-                <div className="date-badge">
-                <FaCalendarAlt /> {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-                </div>
+                <div className="date-badge"><FaCalendarAlt /> {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</div>
             </div>
           </div>
-          
           <div className="progress-card">
-            <div className="prog-header">
-                <h3>Attendance</h3>
-                <span className="count-badge">{presentCount} Days</span>
-            </div>
-            <div className="progress-bar-bg">
-              <div className="progress-bar-fill" style={{width: `${attendancePercentage}%`}}></div>
-            </div>
-            <p className="progress-text">
-                {attendancePercentage}% - {attendancePercentage > 75 ? "Excellent! 🌟" : "Warning ⚠️"}
-            </p>
-            <button onClick={() => navigate('/student/scan')} className="scan-btn">
-                <FaQrcode /> Scan QR
-            </button>
+            <div className="prog-header"><h3>Attendance</h3><span className="count-badge">{presentCount} Days</span></div>
+            <div className="progress-bar-bg"><div className="progress-bar-fill" style={{width: `${attendancePercentage}%`}}></div></div>
+            <p className="progress-text">{attendancePercentage}% - {attendancePercentage > 75 ? "Excellent! 🌟" : "Warning ⚠️"}</p>
+            <button onClick={() => navigate('/student/scan')} className="scan-btn">Scan QR</button>
           </div>
         </header>
 
-        {/* QUICK ACCESS GRID */}
         <div className="section-title">QUICK ACCESS</div>
         <div className="vip-grid">
           {features.map((item, index) => (
@@ -133,43 +114,28 @@ const HomePage = () => {
           ))}
         </div>
 
-        {/* NOTICE BOARD */}
         <div className="notice-section">
-          <div className="section-title-row">
-             <h3><FaBell className="bell-icon" /> Campus Updates</h3>
-             <span className="notice-count">{notices.length} New</span>
-          </div>
-          
+          <div className="section-title-row"><h3><FaBell className="bell-icon" /> Campus Updates</h3><span className="notice-count">{notices.length} New</span></div>
           <div className="notice-board">
             {notices.length > 0 ? (
                 notices.map((notice) => (
                     <div key={notice.id} className="notice-item">
                         <div className="notice-header">
-                            <span className="notice-tag">📢 {notice.department} • {notice.targetYear}</span>
+                            <span className="notice-tag">📢 {notice.department === "Global" ? "🌍 Global" : `${notice.department} • ${notice.targetYear}`}</span>
                             <span className="notice-date">{notice.formattedDate}</span>
                         </div>
-                        <p style={{fontWeight:'bold', marginBottom:'5px', fontSize:'0.95rem', color: 'var(--text-color)'}}>
-                            {notice.message}
-                        </p>
-                        
+                        <p style={{fontWeight:'bold', marginBottom:'5px', fontSize:'0.95rem', color: 'var(--text-color)'}}>{notice.message}</p>
                         <div style={{fontSize:'0.75rem', color:'#888', marginTop:'5px', display:'flex', alignItems:'center', gap:'5px'}}>
                             <span>- {notice.sender}</span>
-                            {notice.durationLabel && (
-                                <span style={{background:'#fee2e2', color:'#ef4444', padding:'1px 6px', borderRadius:'4px', fontWeight:'bold'}}>
-                                    Expires in {notice.durationLabel}
-                                </span>
-                            )}
+                            {notice.durationLabel && <span style={{background:'#fee2e2', color:'#ef4444', padding:'1px 6px', borderRadius:'4px', fontWeight:'bold'}}>Expires in {notice.durationLabel}</span>}
                         </div>
                     </div>
                 ))
             ) : (
-                <div className="empty-notice">
-                    <p>No active notices for {studentData.department ? `${studentData.department} (${studentData.year})` : "you"}.</p>
-                </div>
+                <div className="empty-notice"><p>No active notices for {studentData.department ? `${studentData.department} (${studentData.year})` : "you"}.</p></div>
             )}
           </div>
         </div>
-
       </div>
     </div>
   );

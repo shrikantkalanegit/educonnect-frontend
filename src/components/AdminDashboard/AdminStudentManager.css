@@ -169,3 +169,44 @@
     .std-manager-grid { grid-template-columns: 1fr; }
     .std-page-header { flex-direction: column; text-align: center; gap: 10px; }
 }
+.asm-container {
+    min-height: 100vh; background: #f8fafc; font-family: 'Outfit', sans-serif;
+    padding: 30px;
+}
+.asm-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;
+}
+.asm-header button {
+    background: white; border: 1px solid #ddd; padding: 10px 20px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 600;
+}
+.asm-content {
+    display: grid; grid-template-columns: 1fr 2fr; gap: 30px;
+}
+
+.asm-card {
+    background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+/* Form */
+.asm-form { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
+.asm-form input { padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; outline: none; }
+.asm-form button { background: #2563eb; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+
+/* Table */
+.list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.search-box { background: #f1f5f9; padding: 8px 15px; border-radius: 20px; display: flex; align-items: center; gap: 10px; }
+.search-box input { border: none; background: transparent; outline: none; }
+
+.table-wrapper { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; padding: 15px; color: #64748b; font-size: 0.85rem; border-bottom: 2px solid #f1f5f9; }
+td { padding: 15px; border-bottom: 1px solid #f1f5f9; font-size: 0.95rem; }
+.id-col { font-weight: bold; color: #2563eb; display: flex; align-items: center; gap: 8px; }
+
+.status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; }
+.status-badge.pend { background: #fff7ed; color: #c2410c; }
+.status-badge.reg { background: #f0fdf4; color: #15803d; }
+
+.del-btn { background: #fee2e2; color: #ef4444; border: none; padding: 8px; border-radius: 6px; cursor: pointer; }
+
+@media (max-width: 900px) { .asm-content { grid-template-columns: 1fr; } }

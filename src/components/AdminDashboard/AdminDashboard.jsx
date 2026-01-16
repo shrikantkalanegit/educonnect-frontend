@@ -7,7 +7,7 @@ import {
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../../firebase";
-import { doc, onSnapshot, collection, query, where, getCountFromServer, deleteDoc, orderBy } from "firebase/firestore"; 
+import { doc, onSnapshot, collection, query, getCountFromServer, deleteDoc, orderBy } from "firebase/firestore"; 
 import { onAuthStateChanged, signOut } from "firebase/auth";
 
 const AdminDashboard = () => {
@@ -16,7 +16,7 @@ const AdminDashboard = () => {
   const [adminName, setAdminName] = useState("Admin");
   const [greeting, setGreeting] = useState("Welcome");
   
-  // 🔥 FIX 1: Initialize State directly from LocalStorage
+  // LocalStorage se Dept uthao
   const [currentDept, setCurrentDept] = useState(localStorage.getItem("currentDept") || "");
 
   const [stats, setStats] = useState({ students: 0, staff: 0, notices: 0 });
@@ -25,16 +25,16 @@ const AdminDashboard = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [liveNotices, setLiveNotices] = useState([]);
 
-  // --- EFFECT 1: CHECK DEPT & THEME ---
+  // 1. Initial Setup (Dept Check & Theme)
   useEffect(() => {
     const dept = localStorage.getItem("currentDept");
     if (!dept) {
         navigate("/admin/select-dept");
         return;
     }
-    setCurrentDept(dept); // Ensure State is Sync
+    setCurrentDept(dept);
 
-    // Theme & Time
+    // Theme & Time Check
     const savedTheme = localStorage.getItem("adminTheme");
     if (savedTheme === "dark") setDarkMode(true);
     
@@ -42,13 +42,12 @@ const AdminDashboard = () => {
     setGreeting(hour < 12 ? "Good Morning" : hour < 18 ? "Good Afternoon" : "Good Evening");
   }, [navigate]);
 
-  // --- EFFECT 2: AUTH & USER STATS ---
+  // 2. Auth & Admin Profile Listener
   useEffect(() => {
     if (!currentDept) return;
 
     const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        // Admin Profile Listener
         const unsubProfile = onSnapshot(doc(db, "admins", user.uid), (docSnap) => {
           if (docSnap.exists()) {
             const data = docSnap.data();
@@ -56,29 +55,20 @@ const AdminDashboard = () => {
             if (data.name) setAdminName(data.name.split(" ")[0]);
           }
         });
-
-        // Get Stats (One time fetch to avoid heavy listeners)
-        try {
-          const studentQ = query(collection(db, "users"), where("department", "==", currentDept));
-          const studentSnap = await getCountFromServer(studentQ);
-          setStats(prev => ({ ...prev, students: studentSnap.data().count, staff: 12 }));
-        } catch (e) { console.log("Stats Error:", e); }
-
-        return () => unsubProfile(); // Cleanup inner listener
+        return () => unsubProfile();
       }
     });
 
     return () => unsubscribeAuth();
-  }, [currentDept]); // Run when Department changes
+  }, [currentDept]);
 
-  // --- EFFECT 3: NOTICES LISTENER (This caused the crash) ---
+  // 3. NOTICE LISTENER (Fixed for Global + Dept)
   useEffect(() => {
     if (!currentDept) return;
 
-    // 🔥 FIX 2: Proper Query & Listener
+    // Query: Sare notices lao, time ke hisab se sort karke
     const noticeQuery = query(
         collection(db, "notices"), 
-        where("department", "==", currentDept),
         orderBy("createdAt", "desc")
     );
 
@@ -88,8 +78,15 @@ const AdminDashboard = () => {
         
         snapshot.docs.forEach(doc => {
             const data = doc.data();
-            // Check Expiry
-            if (data.expiresAt && data.expiresAt.toMillis() > now) {
+            
+            // FILTER LOGIC:
+            // 1. Ya to notice mere department ka ho, YA phir "Global" ho.
+            const isMyDeptOrGlobal = (data.department === currentDept) || (data.department === "Global");
+            
+            // 2. Time expire na hua ho
+            const isNotExpired = data.expiresAt ? data.expiresAt.toMillis() > now : true;
+
+            if (isMyDeptOrGlobal && isNotExpired) {
                 validNotices.push({ id: doc.id, ...data });
             }
         });
@@ -97,18 +94,13 @@ const AdminDashboard = () => {
         setLiveNotices(validNotices);
         setStats(prev => ({ ...prev, notices: validNotices.length }));
     }, (error) => {
-        console.error("Notice Listener Error:", error);
-        // Agar Index missing error aaye to console mein link milega
+        console.error("Notice Error:", error);
     });
 
-    // 🔥 FIX 3: Strict Cleanup
-    return () => {
-        unsubNotice();
-        setLiveNotices([]); // Reset state on unmount
-    };
-  }, [currentDept]); // Only re-run when Dept changes
+    return () => unsubNotice();
+  }, [currentDept]);
 
-  // ... (Baaki Functions Same Rahenge) ...
+  // --- Handlers ---
   const toggleTheme = () => {
     const newMode = !darkMode;
     setDarkMode(newMode);
@@ -118,7 +110,9 @@ const AdminDashboard = () => {
   const handleLogout = async () => {
     if(window.confirm("Are you sure you want to logout?")) { 
         try {
-            await signOut(auth); localStorage.clear(); navigate("/", { replace: true });
+            await signOut(auth);
+            localStorage.clear();
+            navigate("/", { replace: true });
         } catch (error) { console.error("Logout Failed", error); }
     }
   };
@@ -140,7 +134,6 @@ const AdminDashboard = () => {
         </div>
         
         <div className="nav-actions">
-          {/* HOME BTN */}
           <div className="icon-wrap home-btn" onClick={() => navigate('/admin/select-dept')} title="Switch Campus">
              <FaUniversity />
           </div>
@@ -149,7 +142,7 @@ const AdminDashboard = () => {
              {darkMode ? <FaSun className="sun-icon"/> : <FaMoon className="moon-icon"/>}
           </div>
 
-          {/* NOTIFICATIONS */}
+          {/* NOTIFICATIONS / NOTICE BOARD DROPDOWN */}
           <div className="menu-container">
             <div className="icon-wrap" onClick={() => {setShowNotif(!showNotif); setShowMenu(false);}}>
                 <FaBell /><span className="pulse-dot"></span>
@@ -165,7 +158,9 @@ const AdminDashboard = () => {
                                 <div className="notif-icon info"><FaBullhorn /></div>
                                 <div className="notif-text">
                                     <p>{note.message.substring(0, 40)}...</p>
-                                    <span>{note.targetYear} • {note.durationLabel} left</span>
+                                    <span>
+                                        {note.department === "Global" ? "🌍 Global" : note.targetYear} • {note.durationLabel} left
+                                    </span>
                                 </div>
                             </div>
                         ))
@@ -208,7 +203,7 @@ const AdminDashboard = () => {
           </div>
         </header>
 
-        {/* STATS ROW */}
+        {/* STATS */}
         <div className="stats-row">
           <div className="stat-card">
             <div className="stat-num">{stats.students}</div>
@@ -224,7 +219,7 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* QUICK ACTIONS GRID */}
+        {/* QUICK ACTIONS */}
         <div className="section-title" style={{marginTop:'10px'}}>QUICK ACTIONS</div>
         <div className="vip-grid">
           <div className="vip-card card-blue" onClick={() => navigate('/admin/class-selection')}>
@@ -269,7 +264,7 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* NOTICE BOARD SECTION */}
+        {/* NOTICE BOARD (Correctly Filtering Global + Dept) */}
         <div className="notice-board-section" style={{marginTop:'40px'}}>
             <div className="section-title">📢 ACTIVE CAMPUS UPDATES</div>
             
@@ -282,7 +277,12 @@ const AdminDashboard = () => {
                                     {notice.senderPic ? <img src={notice.senderPic} alt="Sender"/> : <FaUserCircle/>}
                                 </div>
                                 <div className="notice-content">
-                                    <h4>{notice.sender} <span className="target-badge">{notice.targetYear}</span></h4>
+                                    <h4>
+                                        {notice.sender} 
+                                        <span className="target-badge">
+                                            {notice.department === "Global" ? "🌍 Global" : notice.targetYear}
+                                        </span>
+                                    </h4>
                                     <p>{notice.message}</p>
                                     <span className="time-badge"><FaClock/> Expires in {notice.durationLabel}</span>
                                 </div>

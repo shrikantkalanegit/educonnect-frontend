@@ -3,11 +3,14 @@ import "./RegisterPage.css";
 import { Link, useNavigate } from 'react-router-dom';
 import { auth, db } from "../../firebase"; 
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc, collection, getDocs, query, orderBy, where, updateDoc } from "firebase/firestore"; // 👈 Updated Imports
+import { doc, setDoc, collection, getDocs, query, orderBy, where, updateDoc } from "firebase/firestore"; 
 
 function RegisterPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  
+  // 🔥 New State to track fetching status
+  const [fetchingDepts, setFetchingDepts] = useState(true); 
   const [departmentList, setDepartmentList] = useState([]);
 
   const [formData, setFormData] = useState({
@@ -26,8 +29,19 @@ function RegisterPage() {
       try {
         const q = query(collection(db, "departments"), orderBy("name"));
         const querySnapshot = await getDocs(q);
-        setDepartmentList(querySnapshot.docs.map(doc => doc.data().name));
-      } catch (error) { console.error("Error:", error); }
+        
+        const depts = querySnapshot.docs.map(doc => doc.data().name);
+        setDepartmentList(depts);
+        
+        if (depts.length === 0) {
+            console.warn("No departments found in DB.");
+        }
+      } catch (error) { 
+        console.error("Error fetching departments:", error); 
+        // Agar permission error aaye to ye console mein dikhega
+      } finally {
+        setFetchingDepts(false); // 🔥 Loading khatam
+      }
     };
     fetchDepartments();
   }, []);
@@ -49,23 +63,21 @@ function RegisterPage() {
     try {
       setLoading(true);
 
-      // 🔥 SECURITY CHECK: Kya ye Student ID allowed list mein hai?
+      // Check allowed list
       const q = query(
         collection(db, "allowed_students"), 
-        where("studentId", "==", formData.studentId.toUpperCase()), // Case insensitive match
-        where("department", "==", formData.department) // Sahi department check
+        where("studentId", "==", formData.studentId.toUpperCase()), 
+        where("department", "==", formData.department) 
       );
       
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.empty) {
-        // ⛔ Agar ID list mein nahi mili
-        alert("⛔ ACCESS DENIED! \nAapka Student ID database mein nahi mila. \nKripya College Admin se contact karein ki apka Roll No add karein.");
+        alert("⛔ ACCESS DENIED! \nAapka Student ID database mein nahi mila. \nKripya College Admin se contact karein.");
         setLoading(false);
         return;
       }
 
-      // Check agar ye ID pehle se registered hai
       const allowedDoc = querySnapshot.docs[0];
       if (allowedDoc.data().isRegistered) {
          alert("⚠️ Yeh Student ID pehle se register ho chuka hai! Login karein.");
@@ -73,11 +85,10 @@ function RegisterPage() {
          return;
       }
 
-      // ✅ Agar sab sahi hai, to Account Banao
+      // Create User
       const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
       const user = userCredential.user;
 
-      // User Data Save in 'users' collection
       await setDoc(doc(db, "users", user.uid), {
         uid: user.uid,
         name: formData.fullName, 
@@ -89,24 +100,19 @@ function RegisterPage() {
         createdAt: new Date()
       });
 
-      // 🔥 Allowed List mein status update karo (Taaki dubara register na ho sake)
       await updateDoc(doc(db, "allowed_students", allowedDoc.id), {
         isRegistered: true,
         registeredUid: user.uid
       });
       
       setLoading(false);
-      alert("✅ Account Successfully Created! Welcome to EduConnect.");
+      alert("✅ Account Successfully Created!");
       navigate("/");
 
     } catch (error) {
       console.error("Error:", error);
       setLoading(false);
-      if (error.code === 'auth/email-already-in-use') {
-        alert("⚠️ Ye Email pehle se registered hai.");
-      } else {
-        alert("❌ Error: " + error.message);
-      }
+      alert("❌ Error: " + error.message);
     }
   };
 
@@ -130,11 +136,17 @@ function RegisterPage() {
             style={{textTransform: 'uppercase'}} 
           />
           
+          {/* 🔥 IMPROVED DEPARTMENT SELECT */}
           <select name="department" value={formData.department} onChange={handleChange} required className="register-dropdown">
             <option value="">-- Select Faculty --</option>
-            {departmentList.length > 0 ? (
+            
+            {fetchingDepts ? (
+                <option disabled>Loading Departments...</option>
+            ) : departmentList.length > 0 ? (
                 departmentList.map((dept, index) => (<option key={index} value={dept}>{dept}</option>))
-            ) : <option disabled>Loading...</option>}
+            ) : (
+                <option disabled>No Departments Found (Contact Admin)</option>
+            )}
           </select>
 
           <select name="year" value={formData.year} onChange={handleChange} required className="register-dropdown">

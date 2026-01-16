@@ -1,168 +1,125 @@
 import React, { useState, useEffect } from "react";
-import "./AdminStudentManager.css"; // 👈 New Premium CSS
-import { FaUserPlus, FaTrash, FaArrowLeft } from "react-icons/fa";
+import { FaArrowLeft, FaUserPlus, FaTrash, FaSearch, FaIdCard, FaCheckCircle, FaExclamationCircle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { db } from "../../firebase";
-import { collection, addDoc, getDocs, deleteDoc, doc, query, where, orderBy } from "firebase/firestore";
+import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp, where } from "firebase/firestore";
+import "./AdminStudentManager.css"; 
 
 const AdminStudentManager = () => {
   const navigate = useNavigate();
   const [studentId, setStudentId] = useState("");
-  const [validStudents, setValidStudents] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  // 🔥 Current Department (Jo Admin ne select kiya hai)
+  const [studentName, setStudentName] = useState("");
+  const [studentsList, setStudentsList] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const currentDept = localStorage.getItem("currentDept");
 
   useEffect(() => {
-    if (!currentDept) {
-        navigate("/admin/select-dept");
-        return;
-    }
-    fetchValidStudents();
-  }, [currentDept, navigate]);
+    if(!currentDept) return;
+    const q = query(
+        collection(db, "allowed_students"), 
+        where("department", "==", currentDept),
+        orderBy("createdAt", "desc")
+    );
+    const unsub = onSnapshot(q, (snapshot) => {
+        setStudentsList(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+    return () => unsub();
+  }, [currentDept]);
 
-  // 1. Fetch Existing Allowed IDs for Current Dept
-  const fetchValidStudents = async () => {
-    try {
-        // IDs ko 'Newest First' order mein layenge
-        const q = query(
-          collection(db, "allowed_students"), 
-          where("department", "==", currentDept),
-          orderBy("createdAt", "desc") 
-        );
-        const snap = await getDocs(q);
-        setValidStudents(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-    } catch (error) {
-        console.error("Error fetching students:", error);
-    }
-  };
-
-  // 2. Add New Student ID
   const handleAddStudent = async (e) => {
     e.preventDefault();
-    if (!studentId.trim()) return;
+    if (!studentId || !studentName) return alert("Please fill all details!");
+    const isDuplicate = studentsList.some(s => s.studentId === studentId.trim());
+    if(isDuplicate) { alert("Student ID already exists!"); return; }
 
     try {
-      setLoading(true);
-      // Check duplicate in list
-      const duplicate = validStudents.find(s => s.studentId === studentId.toUpperCase());
-      if(duplicate) {
-          alert("⚠️ Yeh Student ID pehle se list mein hai!");
-          setLoading(false);
-          return;
-      }
+        await addDoc(collection(db, "allowed_students"), {
+            studentId: studentId.trim(),
+            name: studentName,
+            department: currentDept,
+            createdAt: serverTimestamp(),
+            isRegistered: false 
+        });
+        setStudentId(""); setStudentName("");
+        alert("✅ Student Whitelisted!");
+    } catch (error) { alert("Error adding student."); }
+  };
 
-      await addDoc(collection(db, "allowed_students"), {
-        studentId: studentId.toUpperCase(),
-        department: currentDept, // Auto-select current faculty
-        isRegistered: false, // Abhi account nahi banaya
-        createdAt: new Date() // Sorting ke liye
-      });
-
-      setStudentId("");
-      fetchValidStudents(); // Refresh list
-      setLoading(false);
-    } catch (error) {
-      console.error(error);
-      alert("Error adding ID");
-      setLoading(false);
+  const handleDelete = async (id) => {
+    if(window.confirm("Remove this student from whitelist?")) {
+        await deleteDoc(doc(db, "allowed_students", id));
     }
   };
 
-  // 3. Delete ID
-  const handleDelete = async (docId) => {
-    if(window.confirm("Is Student ID ko delete karna chahte hain?")) {
-        await deleteDoc(doc(db, "allowed_students", docId));
-        fetchValidStudents();
-    }
-  };
+  const filteredStudents = studentsList.filter(s => 
+      s.name.toLowerCase().includes(searchTerm.toLowerCase()) || s.studentId.includes(searchTerm)
+  );
 
   return (
-    <div className="std-manager-wrapper">
-      
-      {/* HEADER */}
-      <header className="std-page-header">
-        <button className="back-btn-std" onClick={() => navigate('/admin-dashboard')}>
-            <FaArrowLeft />
+    <div className="asm-container">
+      <header className="asm-header">
+        <button className="back-btn" onClick={() => navigate('/admin-dashboard')}>
+            <FaArrowLeft /> Dashboard
         </button>
-        <div>
-            <h1>Manage Student Access</h1>
-            <p>Add valid IDs for <span className="highlight-dept">{currentDept}</span> Faculty</p>
+        <div className="header-title">
+            <h2>Access Control</h2>
+            <p>Dept: <span className="highlight-dept">{currentDept}</span></p>
         </div>
       </header>
 
-      <div className="std-manager-grid">
-        
-        {/* LEFT: ADD FORM CARD */}
-        <div className="std-card">
-            <h3><FaUserPlus /> Add New ID</h3>
-            <form onSubmit={handleAddStudent} className="std-form">
-                
-                <div className="std-input-group">
-                    <label>Faculty (Locked)</label>
-                    <input type="text" value={currentDept} disabled />
+      <div className="asm-content">
+        {/* ADD FORM */}
+        <div className="asm-card add-section">
+            <div className="card-header">
+                <h3><FaUserPlus /> Whitelist Student</h3>
+                <p>Add Student ID so they can register.</p>
+            </div>
+            <form onSubmit={handleAddStudent} className="asm-form">
+                <div className="input-group">
+                    <label>Student ID (Roll No)</label>
+                    <input type="text" placeholder="e.g. CS-2024-001" value={studentId} onChange={(e)=>setStudentId(e.target.value)} required />
                 </div>
-
-                <div className="std-input-group">
-                    <label>Student ID / Roll No</label>
-                    <input 
-                        type="text" 
-                        placeholder="Ex: BCA-2026-001" 
-                        value={studentId} 
-                        onChange={(e) => setStudentId(e.target.value)}
-                        required 
-                        autoFocus
-                    />
+                <div className="input-group">
+                    <label>Full Name</label>
+                    <input type="text" placeholder="e.g. Rahul Sharma" value={studentName} onChange={(e)=>setStudentName(e.target.value)} required />
                 </div>
-
-                <button type="submit" disabled={loading} className="add-btn-std">
-                    {loading ? "Adding..." : "Add to Allowed List"}
-                </button>
+                <button type="submit" className="add-btn">Authorize Student</button>
             </form>
         </div>
 
-        {/* RIGHT: LIST CARD */}
-        <div className="std-card">
-            <h3>Valid Student List ({validStudents.length})</h3>
-            
-            <div className="table-container">
-                {validStudents.length > 0 ? (
-                    <table className="std-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Status</th>
-                                <th>Action</th>
+        {/* LIST SECTION */}
+        <div className="asm-card list-section">
+            <div className="list-header">
+                <h3>Allowed Students ({filteredStudents.length})</h3>
+                <div className="search-box">
+                    <FaSearch />
+                    <input placeholder="Search ID or Name..." value={searchTerm} onChange={e=>setSearchTerm(e.target.value)}/>
+                </div>
+            </div>
+            <div className="table-wrapper">
+                <table>
+                    <thead>
+                        <tr><th>ID Card</th><th>Name</th><th>Status</th><th>Action</th></tr>
+                    </thead>
+                    <tbody>
+                        {filteredStudents.length > 0 ? filteredStudents.map(student => (
+                            <tr key={student.id}>
+                                <td className="id-col"><FaIdCard /> {student.studentId}</td>
+                                <td className="name-col">{student.name}</td>
+                                <td>
+                                    <span className={`status-badge ${student.isRegistered ? 'reg' : 'pend'}`}>
+                                        {student.isRegistered ? <><FaCheckCircle/> Registered</> : <><FaExclamationCircle/> Pending</>}
+                                    </span>
+                                </td>
+                                <td>
+                                    <button className="del-btn" onClick={() => handleDelete(student.id)}><FaTrash /></button>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            {validStudents.map((st) => (
-                                <tr key={st.id}>
-                                    <td><strong>{st.studentId}</strong></td>
-                                    <td>
-                                        {st.isRegistered ? 
-                                            <span className="status-badge status-success">Registered ✅</span> : 
-                                            <span className="status-badge status-pending">Pending ⏳</span>
-                                        }
-                                    </td>
-                                    <td>
-                                        <button className="delete-btn-std" onClick={() => handleDelete(st.id)} title="Delete">
-                                            <FaTrash />
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                ) : (
-                    <div style={{textAlign:'center', padding:'40px', color:'#94a3b8'}}>
-                        <p>No IDs found. Students cannot register yet.</p>
-                    </div>
-                )}
+                        )) : <tr><td colSpan="4" className="no-data">No students found.</td></tr>}
+                    </tbody>
+                </table>
             </div>
         </div>
-
       </div>
     </div>
   );

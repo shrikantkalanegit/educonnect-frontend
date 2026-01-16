@@ -4,7 +4,7 @@ import "./AdminProfile.css";
 import { 
   FaUserAstronaut, FaCrown, FaCamera, FaArrowLeft, FaTimes, 
   FaShieldAlt, FaHistory, FaIdCard, FaBullhorn, FaSignOutAlt, FaKey, FaUsers, FaGem, FaPaperPlane,
-  FaChevronRight, FaClock 
+  FaChevronRight 
 } from "react-icons/fa";
 
 import { auth, db } from "../../firebase";
@@ -25,16 +25,16 @@ const AdminProfile = () => {
   const [newAdminEmail, setNewAdminEmail] = useState("");
   const [newAdminName, setNewAdminName] = useState("");
   
-  // 🔥 NOTICE STATES
+  // Notice States
   const [noticeMsg, setNoticeMsg] = useState("");
   const [noticeTarget, setNoticeTarget] = useState("All Years");
-  const [noticeDuration, setNoticeDuration] = useState("24"); // Default 24 Hours
+  const [noticeDuration, setNoticeDuration] = useState("24");
 
   const [studentCount, setStudentCount] = useState(0);
   const [adminData, setAdminData] = useState({
     name: "Admin", designation: "Faculty", profilePic: "", role: "Super Admin"
   });
-  const [currentDept, setCurrentDept] = useState(""); // Faculty name ke liye
+  const [currentDept, setCurrentDept] = useState(""); 
   
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState({});
@@ -43,7 +43,6 @@ const AdminProfile = () => {
   const UPLOAD_PRESET = "ml_default"; 
 
   useEffect(() => {
-    // Current Faculty Pata Karo
     const dept = localStorage.getItem("currentDept") || "General";
     setCurrentDept(dept);
 
@@ -106,34 +105,26 @@ const AdminProfile = () => {
     } catch (e) { alert("Error"); }
   };
 
-  // 🔥 UPDATED NOTICE LOGIC (Timer + Faculty + Auto Delete Time)
   const handleSendNotice = async () => {
     if(!noticeMsg) return alert("Please write a message!");
-
-    // Calculate Expiry Time
     const now = new Date();
     let expiryTime = new Date();
-    
-    if(noticeDuration === "0.08") { // 5 Minutes
-        expiryTime.setMinutes(now.getMinutes() + 5);
-    } else {
-        expiryTime.setHours(now.getHours() + parseInt(noticeDuration));
-    }
+    if(noticeDuration === "0.08") expiryTime.setMinutes(now.getMinutes() + 5);
+    else expiryTime.setHours(now.getHours() + parseInt(noticeDuration));
 
     try {
         await addDoc(collection(db, "notices"), {
             message: noticeMsg,
             targetYear: noticeTarget,
-            department: currentDept, // Faculty Locked 🔒
+            department: currentDept,
             durationLabel: noticeDuration === "0.08" ? "5 Mins" : `${noticeDuration} Hours`,
             createdAt: serverTimestamp(),
-            expiresAt: Timestamp.fromDate(expiryTime), // Auto delete ke liye date
+            expiresAt: Timestamp.fromDate(expiryTime),
             sender: adminData.name,
             senderPic: adminData.profilePic || ""
         });
         alert("Campus Update Broadcasted! 📢");
-        setNoticeMsg("");
-        setShowNoticeModal(false);
+        setNoticeMsg(""); setShowNoticeModal(false);
     } catch(error) { alert("Failed to send notice."); }
   };
 
@@ -162,7 +153,6 @@ const AdminProfile = () => {
         <div className="vip-spacer"></div>
       </header>
 
-      {/* ... (VIP CARD SECTION SAME AS BEFORE) ... */}
       <div className="vip-card-wrapper">
         <div className="vip-black-card">
             <div className="card-top">
@@ -212,7 +202,13 @@ const AdminProfile = () => {
       <div className="vip-menu-section">
         <h3>Management</h3>
         <div className="vip-glass-box">
-            <MenuItem icon={<FaUsers />} label="Manage Students" subtext="Database Access" onClick={() => navigate("/admin/students-list")} />
+            {/* 👇 FIXED LINK: Now points to AdminStudentManager (Whitelisting) */}
+            <MenuItem 
+                icon={<FaUsers />} 
+                label="Manage Students" 
+                subtext="Add IDs & Whitelist" 
+                onClick={() => navigate("/admin/manage-access")} 
+            />
             <MenuItem icon={<FaShieldAlt />} label="Add New Admin" subtext="Grant Access" onClick={() => setShowAdminModal(true)} />
             <MenuItem icon={<FaIdCard />} label="ID Card Generator" subtext="Create Digital IDs" badge="New" onClick={() => alert("Coming Soon!")} />
         </div>
@@ -220,7 +216,6 @@ const AdminProfile = () => {
         <h3>System & Logs</h3>
         <div className="vip-glass-box">
             <MenuItem icon={<FaHistory />} label="Activity Log" subtext="View recent actions" onClick={() => alert("No recent activity.")} />
-            {/* 👇 RENAMED TO CAMPUS UPDATES */}
             <MenuItem icon={<FaBullhorn />} label="Campus Updates" subtext="Broadcast Notices" onClick={() => setShowNoticeModal(true)} />
         </div>
 
@@ -238,7 +233,6 @@ const AdminProfile = () => {
         </div>
       </div>
 
-      {/* INVITE ADMIN MODAL (SAME) */}
       {showAdminModal && (
         <div className="vip-modal-overlay">
           <div className="vip-modal">
@@ -250,14 +244,11 @@ const AdminProfile = () => {
         </div>
       )}
 
-      {/* 🔥 CAMPUS UPDATES MODAL */}
       {showNoticeModal && (
         <div className="vip-modal-overlay">
           <div className="vip-modal">
             <div className="v-modal-head"><h3>📢 Campus Update</h3><FaTimes onClick={()=>setShowNoticeModal(false)}/></div>
-            
             <p className="modal-label">Faculty: <strong>{currentDept}</strong></p>
-
             <label className="modal-sublabel">Target Audience:</label>
             <select value={noticeTarget} onChange={(e) => setNoticeTarget(e.target.value)} style={inputStyle}>
                 <option value="All Years">All Years</option>
@@ -266,7 +257,6 @@ const AdminProfile = () => {
                 <option value="3rd Year">3rd Year Only</option>
                 <option value="4th Year">4th Year Only</option>
             </select>
-
             <label className="modal-sublabel">Notice Duration (Auto-Delete):</label>
             <select value={noticeDuration} onChange={(e) => setNoticeDuration(e.target.value)} style={inputStyle}>
                 <option value="24">24 Hours (Standard)</option>
@@ -274,19 +264,16 @@ const AdminProfile = () => {
                 <option value="168">1 Week</option>
                 <option value="0.08">⚡ 5 Minutes (Testing)</option>
             </select>
-
             <textarea 
                 placeholder="Type your notice here..." value={noticeMsg} onChange={e=>setNoticeMsg(e.target.value)} rows="4" 
                 style={{...inputStyle, fontFamily:'inherit'}}
             />
-
             <button className="vip-modal-btn" onClick={handleSendNotice}>
                 <FaPaperPlane style={{marginRight:'8px'}}/> Broadcast Now
             </button>
           </div>
         </div>
       )}
-
     </div>
   );
 };
