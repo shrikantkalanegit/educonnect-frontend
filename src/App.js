@@ -1,4 +1,5 @@
 import React from 'react';
+//....ready
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 // --- 1. AUTH COMPONENTS (Public) ---
