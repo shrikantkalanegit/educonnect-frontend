@@ -1,41 +1,51 @@
 import React from "react";
-import "./ClassSelection.css"; // Using Shared CSS
-import { FaGraduationCap, FaArrowLeft } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import "./ClassSelection.css"; 
+import { FaArrowLeft, FaLaptopCode, FaCogs, FaDraftingCompass, FaAtom, FaMicroscope, FaFlask } from "react-icons/fa";
 
 const ClassSelection = () => {
   const navigate = useNavigate();
 
-  const years = [
-    { id: "1st Year", title: "1st Year", bg: "linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)" },
-    { id: "2nd Year", title: "2nd Year", bg: "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)" },
-    { id: "3rd Year", title: "3rd Year", bg: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)" },
-    { id: "4th Year", title: "4th Year", bg: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)" },
+  // Demo Subject Groups (Backend se bhi aa sakta hai)
+  const subjectGroups = [
+    { id: 1, title: "Computer Science", sub: "B.Tech / BCA", icon: <FaLaptopCode/>, color: "blue" },
+    { id: 2, title: "Mechanical Engg", sub: "B.Tech / Diploma", icon: <FaCogs/>, color: "orange" },
+    { id: 3, title: "Civil Engineering", sub: "B.Tech / Diploma", icon: <FaDraftingCompass/>, color: "green" },
+    { id: 4, title: "Physics Major", sub: "B.Sc / M.Sc", icon: <FaAtom/>, color: "purple" },
+    { id: 5, title: "Biology / Medical", sub: "MBBS / B.Sc", icon: <FaMicroscope/>, color: "red" },
+    { id: 6, title: "Chemistry", sub: "B.Sc / Research", icon: <FaFlask/>, color: "cyan" },
   ];
 
   return (
-    <div className="class-selection-container">
-      <header className="selection-header">
-        <h1>Select Class 🎓</h1>
-        <button className="back-btn" onClick={() => navigate('/home')}>
-          <FaArrowLeft /> Home
+    <div className="class-wrapper">
+      
+      {/* HEADER */}
+      <header className="class-header">
+        <button className="back-btn-glass" onClick={() => navigate(-1)}>
+            <FaArrowLeft /> Back
         </button>
+        <div className="header-text">
+            <h1>Select Department</h1>
+            <p>Choose a subject group to proceed</p>
+        </div>
+        <div style={{width: 45}}></div> {/* Spacer for center alignment */}
       </header>
 
-      <div className="years-grid">
-        {years.map((year, index) => (
-          <div 
-            key={index} 
-            className="year-app-item" 
-            onClick={() => navigate(`/student/subjects/${year.id}`)}
-          >
-            <div className="year-squircle" style={{ background: year.bg }}>
-               <FaGraduationCap />
+      {/* CONTENT GRID */}
+      <div className="class-grid">
+        {subjectGroups.map((group) => (
+            <div key={group.id} className={`class-card ${group.color}-card`} onClick={() => alert(`Selected: ${group.title}`)}>
+                <div className="card-icon-bg">{group.icon}</div>
+                <div className="card-content">
+                    <div className="icon-box">{group.icon}</div>
+                    <h3>{group.title}</h3>
+                    <p>{group.sub}</p>
+                    <button className="enter-btn">Enter Class &rarr;</button>
+                </div>
             </div>
-            <span className="year-label">{year.title}</span>
-          </div>
         ))}
       </div>
+
     </div>
   );
 };

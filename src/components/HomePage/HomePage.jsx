@@ -1,27 +1,33 @@
 import React, { useEffect, useState } from "react";
 import "./HomePage.css";
-import Navbar from "../Navbar/Navbar";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../../firebase"; 
 import { collection, query, orderBy, onSnapshot, doc, getDoc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
-import { FaBookOpen, FaUsers, FaBook, FaChartLine, FaBell, FaCalendarAlt, FaGraduationCap } from "react-icons/fa";
+import { 
+  FaBookOpen, FaUsers, FaBook, FaChartPie, FaBell, FaCalendarAlt, 
+  FaQrcode, FaClipboardList, FaChalkboardTeacher, FaUserCircle, FaUniversity 
+} from "react-icons/fa";
 
 const HomePage = () => {
   const navigate = useNavigate();
   const [userName, setUserName] = useState("Student");
-  const [studentData, setStudentData] = useState({ department: "", year: "" }); 
+  const [studentData, setStudentData] = useState({ department: "", year: "", photo: "" }); 
   const [notices, setNotices] = useState([]);
   
-  const [presentCount] = useState(0); 
-  const [attendancePercentage] = useState(75);
+  // Demo Stats
+  const [attendance] = useState(78); 
+  const [assignments] = useState(3);
+
+  // Gradients for Student Theme
+  const gradSub = "linear-gradient(135deg, #d8b4fe 0%, #f0abfc 100%)"; // Purple-Pink
+  const gradComm = "linear-gradient(135deg, #86efac 0%, #3b82f6 100%)"; // Green-Blue
+  const gradLib = "linear-gradient(135deg, #fca5a5 0%, #fcd34d 100%)"; // Red-Yellow
+  const gradExam = "linear-gradient(135deg, #67e8f9 0%, #2dd4bf 100%)"; // Cyan-Teal
 
   useEffect(() => {
     const unsubAuth = onAuthStateChanged(auth, async (user) => {
       if (!user) return; 
-      const role = localStorage.getItem("userRole");
-      if (role === "admin") { navigate("/admin-dashboard"); return; }
-
       if (user.displayName) setUserName(user.displayName.split(" ")[0]);
 
       try {
@@ -29,15 +35,19 @@ const HomePage = () => {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
             const data = docSnap.data();
-            setStudentData({ department: data.department, year: data.year });
+            setStudentData({ 
+                department: data.department, 
+                year: data.year,
+                photo: data.photo 
+            });
             fetchAndFilterNotices(data.department, data.year);
         }
       } catch (e) { console.error("Error fetching user data:", e); }
     });
     return () => unsubAuth();
-  }, [navigate]);
+  }, []);
 
-  // 🔥 GLOBAL + DEPT NOTICE FILTER
+  // Notice Logic
   const fetchAndFilterNotices = (userDept, userYear) => {
     const noticesRef = collection(db, "notices");
     const qNotice = query(noticesRef, orderBy("createdAt", "desc"));
@@ -45,24 +55,16 @@ const HomePage = () => {
     onSnapshot(qNotice, (snapshot) => {
         const now = Date.now();
         const validNotices = [];
-
         snapshot.docs.forEach(doc => {
             const data = doc.data();
-            
-            // 1. Department Match: "My Dept" OR "Global"
             const isDeptMatch = (data.department === userDept) || (data.department === "Global");
-
-            // 2. Year Match: "My Year" OR "All Years"
             const isYearMatch = (data.targetYear === "All Years") || (data.targetYear === userYear);
-
-            // 3. Expiry Check
             const isNotExpired = data.expiresAt ? data.expiresAt.toMillis() > now : true;
 
             if (isDeptMatch && isYearMatch && isNotExpired) {
                 validNotices.push({ 
-                    id: doc.id, 
-                    ...data,
-                    formattedDate: data.createdAt?.seconds 
+                    id: doc.id, ...data,
+                    date: data.createdAt?.seconds 
                         ? new Date(data.createdAt.seconds * 1000).toLocaleDateString('en-US', {month:'short', day:'numeric'}) 
                         : "Today"
                 });
@@ -72,70 +74,117 @@ const HomePage = () => {
     });
   };
 
-  const features = [
-    { title: "My Subjects", desc: "Notes & Materials", icon: <FaBookOpen />, path: "/subject", styleClass: "card-blue" },
-    { title: "Community", desc: "Student Forum", icon: <FaUsers />, path: "/community", styleClass: "card-purple" },
-    { title: "Library", desc: "Digital Books", icon: <FaBook />, path: "/books", styleClass: "card-gold" },
-    { title: "Exam Portal", desc: "Results & Dates", icon: <FaChartLine />, path: "/papers", styleClass: "card-red" }
-  ];
-
   return (
-    <div className="student-wrapper"> 
-      <Navbar />
-      <div className="home-container">
-        <header className="hero-section">
-          <div className="hero-content">
-            <div className="hero-text">
-                <h1>Hello, {userName}! <FaGraduationCap className="hat-icon"/></h1>
-                <p>Welcome to <strong>{studentData.department || "EduConnect"}</strong> Dashboard.</p>
-                <div className="date-badge"><FaCalendarAlt /> {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</div>
+    <div className="std-wrapper-ios"> 
+      
+      {/* NAVBAR */}
+      <nav className="ios-navbar">
+        <div className="brand-box">
+            <div className="brand-logo">E</div>
+            <h2>EduConnect</h2>
+        </div>
+        {/* 🔥 FIXED LINK: /student-profile */}
+        <div className="nav-profile-pill" onClick={() => navigate('/student-profile')}>
+            {studentData.photo ? <img src={studentData.photo} alt="P" /> : <FaUserCircle/>}
+            <span>{userName}</span>
+        </div>
+      </nav>
+
+      <div className="ios-content">
+        
+        {/* HEADER */}
+        <header className="ios-header">
+            <div>
+                <h1>Dashboard</h1>
+                <p>Good Morning, <span className="dept-tag">{userName}</span></p>
             </div>
-          </div>
-          <div className="progress-card">
-            <div className="prog-header"><h3>Attendance</h3><span className="count-badge">{presentCount} Days</span></div>
-            <div className="progress-bar-bg"><div className="progress-bar-fill" style={{width: `${attendancePercentage}%`}}></div></div>
-            <p className="progress-text">{attendancePercentage}% - {attendancePercentage > 75 ? "Excellent! 🌟" : "Warning ⚠️"}</p>
-            <button onClick={() => navigate('/student/scan')} className="scan-btn">Scan QR</button>
-          </div>
+            <div className="date-pill">
+                <FaCalendarAlt /> {new Date().toLocaleDateString('en-US', { weekday: 'short', day: 'numeric' })}
+            </div>
         </header>
 
-        <div className="section-title">QUICK ACCESS</div>
-        <div className="vip-grid">
-          {features.map((item, index) => (
-            <div key={index} className={`vip-card ${item.styleClass}`} onClick={() => navigate(item.path)}>
-              <div className="card-bg-icon">{item.icon}</div>
-              <div className="card-content">
-                <div className="icon-box">{item.icon}</div>
-                <h2>{item.title}</h2>
-                <p className="card-desc">{item.desc}</p>
-                <button className="vip-btn">Open &rarr;</button>
-              </div>
+        {/* WIDGETS (Admin Style but Purple/Green) */}
+        <div className="widget-row">
+            <div className="ios-widget large-widget">
+                <div className="widget-content">
+                    <h3>{attendance}%</h3>
+                    <p>Attendance</p>
+                    <div className="widget-icon" style={{background:'#d8b4fe'}}><FaQrcode/></div>
+                </div>
             </div>
-          ))}
+            <div className="ios-widget">
+                <div className="widget-content">
+                    <h3>{assignments}</h3>
+                    <p>Pending</p>
+                    <div className="widget-icon" style={{background:'#fca5a5'}}><FaClipboardList/></div>
+                </div>
+            </div>
+            <div className="ios-widget">
+                <div className="widget-content">
+                    <h3>{notices.length}</h3>
+                    <p>Notices</p>
+                    <div className="widget-icon" style={{background:'#86efac'}}><FaBell/></div>
+                </div>
+            </div>
         </div>
 
-        <div className="notice-section">
-          <div className="section-title-row"><h3><FaBell className="bell-icon" /> Campus Updates</h3><span className="notice-count">{notices.length} New</span></div>
-          <div className="notice-board">
+        {/* APP LIBRARY */}
+        <div className="section-label">My Academics</div>
+        <div className="app-grid-ios">
+            
+            <div className="app-icon-container" onClick={() => navigate('/subject')}>
+                <div className="app-squircle" style={{background: gradSub}}>
+                    <FaChalkboardTeacher />
+                </div>
+                <span>Classes</span>
+            </div>
+
+            <div className="app-icon-container" onClick={() => navigate('/community')}>
+                <div className="app-squircle" style={{background: gradComm}}>
+                    <FaUsers />
+                </div>
+                <span>Community</span>
+            </div>
+
+            <div className="app-icon-container" onClick={() => navigate('/books')}>
+                <div className="app-squircle" style={{background: gradLib}}>
+                    <FaBook />
+                </div>
+                <span>Library</span>
+            </div>
+
+            <div className="app-icon-container" onClick={() => navigate('/papers')}>
+                <div className="app-squircle" style={{background: gradExam}}>
+                    <FaChartPie />
+                </div>
+                <span>Results</span>
+            </div>
+
+        </div>
+
+        {/* NOTICE BOARD */}
+        <div className="section-label">Campus Feed</div>
+        <div className="ios-list-container">
             {notices.length > 0 ? (
-                notices.map((notice) => (
-                    <div key={notice.id} className="notice-item">
-                        <div className="notice-header">
-                            <span className="notice-tag">📢 {notice.department === "Global" ? "🌍 Global" : `${notice.department} • ${notice.targetYear}`}</span>
-                            <span className="notice-date">{notice.formattedDate}</span>
+                notices.map(notice => (
+                    <div key={notice.id} className="ios-list-row">
+                        <div className="row-icon"><FaUniversity/></div>
+                        <div className="row-info">
+                            <h4>{notice.department === "Global" ? "Global Update" : notice.department}</h4>
+                            <p>{notice.message}</p>
                         </div>
-                        <p style={{fontWeight:'bold', marginBottom:'5px', fontSize:'0.95rem', color: 'var(--text-color)'}}>{notice.message}</p>
-                        <div style={{fontSize:'0.75rem', color:'#888', marginTop:'5px', display:'flex', alignItems:'center', gap:'5px'}}>
-                            <span>- {notice.sender}</span>
-                            {notice.durationLabel && <span style={{background:'#fee2e2', color:'#ef4444', padding:'1px 6px', borderRadius:'4px', fontWeight:'bold'}}>Expires in {notice.durationLabel}</span>}
+                        <div className="row-meta">
+                            <span className="meta-badge">{notice.date}</span>
                         </div>
                     </div>
                 ))
             ) : (
-                <div className="empty-notice"><p>No active notices for {studentData.department ? `${studentData.department} (${studentData.year})` : "you"}.</p></div>
+                <div style={{padding:'30px', textAlign:'center', color:'#64748b', fontStyle:'italic'}}>
+                    No new updates 🎉
+                </div>
             )}
-          </div>
         </div>
+
       </div>
     </div>
   );

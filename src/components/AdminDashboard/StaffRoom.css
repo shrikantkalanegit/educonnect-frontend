@@ -1,230 +1,199 @@
-/* --- VIP CONTAINER --- */
-.staff-room-container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  background: radial-gradient(circle at center, #1e272e 0%, #000000 100%);
-  color: #fff;
-  font-family: 'Segoe UI', sans-serif;
-  position: relative;
-  overflow: hidden;
-}
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap');
 
-/* Texture Overlay */
-.staff-room-container::before {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background-image: url("https://www.transparenttextures.com/patterns/black-felt.png");
-  opacity: 0.1;
-  pointer-events: none;
+/* --- MAIN CONTAINER --- */
+.staff-container {
+    height: 100vh;
+    display: flex; flex-direction: column;
+    font-family: 'Outfit', sans-serif;
+    background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
+    overflow: hidden;
 }
 
 /* --- HEADER --- */
 .staff-header {
-  display: flex;
-  align-items: center;
-  padding: 10px 15px; /* Thoda slim kiya header ko */
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(212, 175, 55, 0.3);
-  box-shadow: 0 5px 20px rgba(0,0,0,0.5);
-  z-index: 10;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 15px 20px;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    z-index: 100;
 }
 
-.staff-back-btn {
-  background: none;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #d4af37;
-  font-size: 1rem;
-  padding: 8px;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: 0.3s;
-  display: flex; align-items: center; justify-content: center;
+.back-btn-glass {
+    width: 40px; height: 40px; border-radius: 50%; border: none;
+    background: white; color: #1e293b;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: 0.2s;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+.back-btn-glass:hover { transform: scale(1.1); }
+
+.header-info { text-align: center; }
+.header-info h2 { margin: 0; font-size: 1.2rem; color: #1e293b; font-weight: 700; }
+.header-info p { margin: 0; font-size: 0.8rem; color: #64748b; }
+
+.online-indicator {
+    font-size: 0.75rem; color: #15803d; font-weight: 600;
+    background: #dcfce7; padding: 4px 10px; border-radius: 20px;
+    display: flex; align-items: center; gap: 6px;
+}
+.dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 5px #22c55e; }
+
+/* --- CHAT AREA --- */
+.chat-area {
+    flex: 1; padding: 20px; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 12px;
 }
 
-.staff-back-btn:hover {
-  background: #d4af37;
-  color: #000;
+.chat-start-notice { text-align: center; margin-bottom: 10px; opacity: 0.7; }
+.chat-start-notice span {
+    background: rgba(255,255,255,0.5); padding: 5px 12px;
+    border-radius: 12px; font-size: 0.75rem; color: #475569;
 }
 
-.vip-badge {
-  margin: 0 10px;
-  font-size: 1.5rem;
-  color: #d4af37;
-  filter: drop-shadow(0 0 5px rgba(212, 175, 55, 0.6));
+/* --- MESSAGE BUBBLES --- */
+.message-row { 
+    display: flex; align-items: flex-end; gap: 10px; 
+    max-width: 70%; /* 🔥 LENGTH KAM KI (Compact Width) */
+}
+.row-me { align-self: flex-end; flex-direction: row-reverse; }
+.row-other { align-self: flex-start; }
+
+.chat-avatar {
+    width: 35px; height: 35px; background: white; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; color: #64748b; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    overflow: hidden; border: 2px solid white; flex-shrink: 0;
+}
+.chat-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.message-bubble {
+    padding: 10px 14px; border-radius: 16px;
+    font-size: 0.95rem; line-height: 1.4; position: relative;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05); min-width: 100px;
+    word-wrap: break-word;
 }
 
-.room-title h2 {
-  margin: 0;
-  font-size: 1rem;
-  letter-spacing: 1px;
-  color: #ecf0f1;
-  font-family: 'Cinzel', serif;
+.row-me .message-bubble {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white; border-bottom-right-radius: 2px;
 }
 
-.room-title p {
-  margin: 0;
-  font-size: 0.65rem;
-  color: #bdc3c7;
-  display: flex; align-items: center;
+.row-other .message-bubble {
+    background: white; color: #1e293b;
+    border-bottom-left-radius: 2px;
 }
 
-.vip-tag {
-  background: #d4af37;
-  color: #000;
-  font-size: 0.5rem;
-  padding: 1px 4px;
-  border-radius: 3px;
-  vertical-align: middle;
-  font-weight: bold;
-  margin-left: 5px;
+.sender-label {
+    display: block; font-size: 0.75rem; font-weight: 700;
+    color: #6366f1; margin-bottom: 4px;
 }
 
-/* --- CHAT BODY --- */
-.staff-body {
-  flex: 1;
-  padding: 15px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 8px; /* Messages ke beech gap kam kiya */
+.msg-bottom {
+    display: flex; justify-content: flex-end; align-items: center; gap: 5px;
+    margin-top: 4px;
 }
+.msg-time { font-size: 0.65rem; opacity: 0.7; }
+.read-receipt { font-size: 0.7rem; opacity: 0.8; }
 
-/* Scrollbar */
-.staff-body::-webkit-scrollbar { width: 4px; }
-.staff-body::-webkit-scrollbar-thumb { background: #444; border-radius: 10px; }
-
-/* Empty State */
-.welcome-vip {
-  text-align: center;
-  margin-top: 30%;
-  opacity: 0.4;
+/* --- 3 DOTS MENU --- */
+.msg-options {
+    position: absolute; top: 5px; right: 5px;
 }
-.big-crown { font-size: 3rem; color: #d4af37; margin-bottom: 10px; }
-
-/* --- MESSAGES --- */
-.staff-row {
-  display: flex;
-  align-items: flex-end;
-  gap: 8px;
-  max-width: 75%; /* Thoda width kam kiya taaki compact lage */
+.dots-btn {
+    background: transparent; border: none; color: rgba(255,255,255,0.7);
+    cursor: pointer; padding: 5px; font-size: 0.9rem;
+    transition: 0.2s;
 }
+.dots-btn:hover { color: white; }
 
-.row-me {
-  align-self: flex-end;
-  flex-direction: row-reverse;
+.dots-menu {
+    position: absolute; right: 0; top: 25px;
+    background: white; border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    overflow: hidden; width: 100px; z-index: 50;
+    animation: fadeIn 0.2s ease;
 }
-
-.row-other {
-  align-self: flex-start;
+.dots-menu div {
+    padding: 10px; font-size: 0.85rem; color: #334155;
+    display: flex; align-items: center; gap: 8px; cursor: pointer;
+    font-weight: 600;
 }
+.dots-menu div:hover { background: #f1f5f9; }
+.dots-menu .delete-opt { color: #ef4444; border-top: 1px solid #f1f5f9; }
 
-.sender-avatar {
-  width: 28px; height: 28px; /* Avatar chhota kiya */
-  background: #2c3e50;
-  border: 1px solid #d4af37;
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  color: #d4af37;
-  font-size: 0.8rem;
-  flex-shrink: 0;
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Urgent Style */
+.urgent-bubble {
+    border: 2px solid #ef4444; background: #fff1f2 !important; color: #9f1239 !important;
 }
-
-/* BUBBLE STYLING (Main Changes Here) */
-.staff-bubble {
-  padding: 6px 12px; /* Padding bohot kam kar di */
-  border-radius: 12px;
-  position: relative;
-  font-size: 0.9rem;
-  line-height: 1.3;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  word-wrap: break-word;
+.urgent-badge {
+    color: #ef4444; font-weight: 800; font-size: 0.7rem;
+    margin-bottom: 5px; display: flex; align-items: center; gap: 5px;
 }
-
-/* Text ke andar ka extra gap hataya */
-.msg-text {
-  margin: 0; 
-  padding: 0;
-}
-
-/* My Bubble (Gold) */
-.row-me .staff-bubble {
-  background: linear-gradient(135deg, #d4af37 0%, #c49926 100%);
-  color: #000;
-  border-bottom-right-radius: 2px;
-  border: none; /* Outline hata di */
-}
-
-/* Other Bubble (Dark Glass) */
-.row-other .staff-bubble {
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
-  border: 1px solid rgba(255,255,255,0.05); /* Outline bohot subtle kar di */
-  border-bottom-left-radius: 2px;
-}
-
-.sender-name {
-  display: block;
-  font-size: 0.6rem;
-  color: #f1c40f;
-  margin-bottom: 2px;
-  font-weight: bold;
-}
-
-/* TIME STYLING (Small & Compact) */
-.msg-time {
-  display: block;
-  font-size: 0.55rem; /* Bohot chhota font */
-  margin-top: 3px; /* Text ke ekdum paas */
-  text-align: right;
-  opacity: 0.7;
-}
-
-.row-me .msg-time { color: rgba(0,0,0,0.6); } /* Black text on Gold */
-.row-other .msg-time { color: rgba(255,255,255,0.5); } /* White text on Dark */
 
 /* --- FOOTER --- */
-.staff-footer {
-  padding: 15px;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(5px);
+.chat-footer {
+    padding: 15px; position: relative;
+    background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255,255,255,0.5);
 }
 
-.input-glass-wrapper {
-  display: flex;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(212, 175, 55, 0.2);
-  padding: 4px 8px; /* Footer slim kiya */
-  border-radius: 25px;
-  align-items: center;
+/* Edit Indicator */
+.editing-bar {
+    position: absolute; top: -35px; left: 0; width: 100%;
+    background: rgba(59, 130, 246, 0.9); color: white;
+    padding: 8px 20px; font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center;
+    backdrop-filter: blur(5px);
 }
 
-.staff-footer input {
-  flex: 1;
-  background: transparent;
-  border: none;
-  padding: 10px;
-  color: white;
-  font-size: 0.9rem;
-  outline: none;
+.input-bar {
+    display: flex; align-items: center; gap: 10px;
+    background: white; padding: 8px; border-radius: 30px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;
 }
 
-.vip-send-btn {
-  background: #d4af37;
-  color: #000;
-  border: none;
-  width: 35px; height: 35px; /* Button chhota kiya */
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.9rem;
-  transition: 0.3s;
-  margin-left: 5px;
+.attach-btn, .send-btn {
+    width: 42px; height: 42px; border-radius: 50%; border: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: 0.2s; font-size: 1.1rem;
 }
 
-.vip-send-btn:hover {
-  background: #f1c40f;
-  transform: scale(1.05);
+.attach-btn { background: #f1f5f9; color: #64748b; }
+.attach-btn.active { background: #e2e8f0; color: #1e293b; transform: rotate(45deg); }
+
+.send-btn { background: #3b82f6; color: white; }
+.send-btn:hover { background: #2563eb; transform: scale(1.05); }
+.update-btn { background: #16a34a; } /* Green for update */
+
+.input-bar input {
+    flex: 1; border: none; outline: none; font-size: 1rem;
+    background: transparent; color: #1e293b; font-family: 'Outfit', sans-serif;
 }
+.urgent-input { color: #ef4444; font-weight: 600; }
+
+/* Attach Menu */
+.attach-menu {
+    position: absolute; bottom: 85px; left: 20px;
+    background: white; padding: 15px; border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    display: flex; gap: 20px; z-index: 50;
+    animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.attach-item { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; }
+.attach-item span { font-size: 0.75rem; font-weight: 600; color: #64748b; }
+.icon-box {
+    width: 50px; height: 50px; border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; color: white; transition: 0.2s;
+}
+.attach-item:hover .icon-box { transform: translateY(-3px); }
+
+.orange-bg { background: linear-gradient(135deg, #f97316, #fb923c); }
+.red-bg { background: linear-gradient(135deg, #ef4444, #f87171); }
+.blue-bg { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
+.green-bg { background: linear-gradient(135deg, #22c55e, #4ade80); }
+
+@keyframes popUp { from { opacity: 0; transform: translateY(20px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }

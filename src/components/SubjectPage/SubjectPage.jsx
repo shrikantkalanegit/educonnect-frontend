@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./SubjectPage.css";
 import { useNavigate } from "react-router-dom";
-import { FaUsers, FaCircle, FaArrowRight } from "react-icons/fa";
+import { FaArrowLeft, FaBookOpen, FaChalkboardTeacher, FaArrowRight, FaLayerGroup } from "react-icons/fa";
 import { db, auth } from "../../firebase";
 import { collection, query, where, onSnapshot, getDoc, doc } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
@@ -13,12 +13,13 @@ const SubjectPage = () => {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
 
-  // Cards Gradients
+  // Aurora Theme Gradients
   const gradients = [
-    "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)",
-    "linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%)",
-    "linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)",
-    "linear-gradient(135deg, #fccb90 0%, #d57eeb 100%)",
+    "linear-gradient(135deg, #a855f7 0%, #d8b4fe 100%)", // Purple
+    "linear-gradient(135deg, #3b82f6 0%, #93c5fd 100%)", // Blue
+    "linear-gradient(135deg, #f97316 0%, #fdba74 100%)", // Orange
+    "linear-gradient(135deg, #22c55e 0%, #86efac 100%)", // Green
+    "linear-gradient(135deg, #ef4444 0%, #fca5a5 100%)", // Red
   ];
 
   useEffect(() => {
@@ -31,17 +32,16 @@ const SubjectPage = () => {
           if (userDoc.exists()) {
             const data = userDoc.data();
             
-            // 🔥 SAFETY CHECK: Agar Department ya Year missing hai to Query mat chalao
+            // Safety Check
             if (!data.department || !data.year) {
-                console.error("Profile Incomplete: Department or Year is missing.");
-                setErrorMsg("⚠️ Your profile is incomplete (Department/Year missing). Please update your profile.");
+                setErrorMsg("⚠️ Profile incomplete. Please contact admin.");
                 setLoading(false);
-                return; // Yahan se wapas laut jao, query mat run karo
+                return;
             }
 
             setStudentInfo({ name: data.name, dept: data.department, year: data.year });
 
-            // Ab confirm hai ki data.department aur data.year undefined nahi hain
+            // Fetch Subjects
             const q = query(
               collection(db, "subjects"),
               where("department", "==", data.department),
@@ -66,48 +66,66 @@ const SubjectPage = () => {
   }, [navigate]);
 
   return (
-    <div className="subjectpage">
-      <header className="welcome-section">
-        <h1>My Classroom 📚</h1>
-        {/* Sirf tab dikhao jab info available ho */}
-        {studentInfo.dept && <p>Faculty: <strong>{studentInfo.dept}</strong> • Year: <strong>{studentInfo.year}</strong></p>}
+    <div className="sub-wrapper">
+      
+      {/* HEADER */}
+      <header className="sub-header">
+        <button className="back-btn-glass" onClick={() => navigate(-1)}>
+            <FaArrowLeft /> Back
+        </button>
+        <div className="header-text">
+            <h1>My Classroom</h1>
+            {studentInfo.dept && <p>{studentInfo.dept} • {studentInfo.year}</p>}
+        </div>
+        <div style={{width: 45}}></div> {/* Spacer for alignment */}
       </header>
     
       {loading ? (
-        <p style={{textAlign:'center', marginTop:'50px'}}>Loading Subjects...</p>
+        <div className="loading-glass">Loading Subjects...</div>
       ) : errorMsg ? (
-        <div className="no-data-msg">
-            <h3 style={{color:'red'}}>{errorMsg}</h3>
+        <div className="no-data-glass">
+            <h3>🚫 Access Denied</h3>
+            <p>{errorMsg}</p>
         </div>
       ) : (
-        <div className="subjects-container">
+        <div className="sub-grid">
           {subjects.length === 0 ? (
-            <div className="no-data-msg">
-               <h3>🚫 No subjects found!</h3>
-               <p>Your admin hasn't added subjects for {studentInfo.year} yet.</p>
+            <div className="no-data-glass">
+               <h3>📭 No Classes Yet</h3>
+               <p>Subjects have not been added for your batch.</p>
             </div>
           ) : (
             subjects.map((subject, index) => {
-              const cardColor = gradients[index % gradients.length];
+              const bgGradient = gradients[index % gradients.length];
               return (
                 <div 
                   key={subject.id} 
-                  className="subject-card"
+                  className="sub-card"
                   onClick={() => navigate(`/subject/${subject.name}`)}
                 >
-                  <div className="card-top-accent" style={{background: cardColor}}></div>
-                  <div className="card-icon-bubble" style={{background: cardColor}}>
-                    {subject.name.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="card-content-area">
-                    <h2>{subject.name}</h2>
-                    <p>Tap to enter live classroom</p>
-                    <div className="card-meta">
-                      <div className="meta-item"><FaUsers /> Active</div>
-                      <div className="meta-item"><FaCircle style={{color:'#2ecc71', fontSize:'0.6rem'}}/> Online</div>
+                  
+                  {/* Decorative Background Icon */}
+                  <div className="bg-decor-icon"><FaLayerGroup/></div>
+
+                  <div className="card-top">
+                    <div className="sub-icon-box" style={{background: bgGradient}}>
+                        {subject.name.charAt(0).toUpperCase()}
                     </div>
+                    <span className="sub-badge">Live Class</span>
                   </div>
-                  <button className="join-btn">Enter Class <FaArrowRight /></button>
+
+                  <div className="card-mid">
+                    <h2>{subject.name}</h2>
+                    <p className="teacher-name"><FaChalkboardTeacher/> Class Faculty</p>
+                  </div>
+
+                  <div className="card-footer">
+                    <span>View Materials</span>
+                    <button className="open-btn">
+                        Open <FaArrowRight/>
+                    </button>
+                  </div>
+
                 </div>
               );
             })

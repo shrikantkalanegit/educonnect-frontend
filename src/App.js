@@ -1,5 +1,4 @@
 import React from 'react';
-//....ready
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 // --- 1. AUTH COMPONENTS (Public) ---
@@ -10,7 +9,6 @@ import AdminLogin from "./components/AdminLogin/AdminLogin";
 // --- 2. STUDENT COMPONENTS ---
 import HomePage from './components/HomePage/HomePage'; 
 import BooksPage from './components/BooksPage/BooksPage'; 
-// import SubjectList from './components/ClassSelection/SubjectList';
 import SubjectPage from './components/SubjectPage/SubjectPage';
 import StudentProfile from './components/StudentProfile/StudentProfile';
 import StudentScanner from "./components/Student/StudentScanner";
@@ -29,13 +27,16 @@ import AdminAttendance from "./components/AdminDashboard/AdminAttendance";
 import StudentList from "./components/AdminDashboard/StudentList";
 import AdminAI from "./components/AdminDashboard/AdminAI";
 import StaffRoom from './components/AdminDashboard/StaffRoom';
-import CommunitySelection from './components/Community/CommunitySelection';
+
+// 🔥 UPDATED IMPORT (CommunitySelection Removed)
+import AdminCommunity from './components/Community/AdminCommunity';
+import CommunityProfile from './components/Community/CommunityProfile';
 
 // --- CLASSROOM COMPONENTS ---
 import AdminClassSelection from "./components/ClassSelection/AdminClassSelection";
 import ManageSubjects from "./components/ClassSelection/ManageSubjects";
 
-// 👇 SECURITY COMPONENT IMPORT
+// 🔐 SECURITY COMPONENT
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -52,7 +53,7 @@ function App() {
           <Route path="/admin-login" element={<AdminLogin />} />
 
           {/* ==============================
-              🔒 STUDENT PROTECTED ROUTES
+              🎓 STUDENT PROTECTED ROUTES
               (Access only if role === 'student')
           ============================== */}
           <Route path="/home" element={
@@ -102,8 +103,6 @@ function App() {
             <ProtectedRoute requiredRole="admin"> <AdminDeptSelection /> </ProtectedRoute>
           } />
           
-          {/* Note: Students List ke liye aapne do alag components banaye the, 
-              maine alag paths de diye hain taaki conflict na ho */}
           <Route path="/admin/manage-access" element={
             <ProtectedRoute requiredRole="admin"> <AdminStudentManager /> </ProtectedRoute>
           } />
@@ -129,19 +128,30 @@ function App() {
             <ProtectedRoute requiredRole="admin"> <ManageSubjects /> </ProtectedRoute>
           } />
           
-          {/* Community & Tools */}
-          <Route path="/admin/community-selection" element={
-            <ProtectedRoute requiredRole="admin"> <CommunitySelection /> </ProtectedRoute>
+          {/* 🔥 COMMUNITY ROUTES (Fixed) */}
+          {/* CommunitySelection Route Deleted */}
+          
+          <Route path="/admin/community" element={
+            <ProtectedRoute requiredRole="admin"> <AdminCommunity /> </ProtectedRoute>
           } />
+
+          <Route path="/student/community-profile" element={
+          <ProtectedRoute requiredRole="student"> <CommunityProfile /> </ProtectedRoute>
+          } />
+
+          {/* Admin Group Chat View */}
+          <Route path="/admin/chat/:subjectName" element={
+            <ProtectedRoute requiredRole="admin"> <GroupChatPage isAdmin={true} /> </ProtectedRoute>
+          } />
+
+          {/* Tools & AI */}
           <Route path="/admin/ai" element={
             <ProtectedRoute requiredRole="admin"> <AdminAI /> </ProtectedRoute>
           } />
           <Route path="/admin/staff-community" element={
             <ProtectedRoute requiredRole="admin"> <StaffRoom /> </ProtectedRoute>
           } />
-          <Route path="/admin/chat/:subjectName" element={
-            <ProtectedRoute requiredRole="admin"> <GroupChatPage isAdmin={true} /> </ProtectedRoute>
-          } />
+
           <Route path="/admin/ai-tools" element={
             <ProtectedRoute requiredRole="admin"> 
               <h2 style={{textAlign:'center', marginTop:'50px'}}>AI Tools Coming Soon... 🤖</h2> 

@@ -1,0 +1,214 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+
+.comm-profile-container {
+    min-height: 100vh;
+    background: #fff;
+    font-family: 'Outfit', sans-serif;
+    color: #1e293b;
+    padding-bottom: 20px;
+}
+
+/* HEADER */
+.cp-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 15px; position: sticky; top: 0; background: rgba(255,255,255,0.95);
+    z-index: 50; border-bottom: 1px solid #f1f5f9; backdrop-filter: blur(5px);
+}
+.header-title { margin: 0; font-size: 1.1rem; font-weight: 700; }
+.cp-header button { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #1e293b; }
+
+/* STORIES SECTION */
+.stories-scroll {
+    display: flex; gap: 15px; padding: 15px; overflow-x: auto;
+    border-bottom: 1px solid #f1f5f9; scrollbar-width: none;
+}
+.stories-scroll::-webkit-scrollbar { display: none; }
+
+.story-circle {
+    display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 70px; cursor: pointer;
+}
+.story-circle .ring {
+    width: 65px; height: 65px; border-radius: 50%; padding: 2px;
+    background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+}
+.story-circle .ring img {
+    width: 100%; height: 100%; border-radius: 50%; border: 2px solid white; object-fit: cover;
+}
+.story-circle span { font-size: 0.75rem; color: #64748b; }
+
+.add-story .plus-icon {
+    width: 65px; height: 65px; border-radius: 50%; background: #f1f5f9;
+    display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: #3b82f6;
+}
+
+/* PROFILE STATS */
+.cp-info-section { display: flex; align-items: center; padding: 20px; gap: 20px; }
+.cp-avatar-box img {
+    width: 85px; height: 85px; border-radius: 50%; object-fit: cover;
+    border: 1px solid #e2e8f0;
+}
+.cp-stats-row { flex: 1; display: flex; justify-content: space-around; text-align: center; }
+.stat-box strong { display: block; font-size: 1.2rem; color: #1e293b; }
+.stat-box span { font-size: 0.8rem; color: #64748b; }
+
+/* BIO & ACTIONS */
+.cp-bio-section { padding: 0 20px; margin-bottom: 15px; }
+.real-name { font-size: 1rem; font-weight: 700; margin: 0; }
+.bio-text { font-size: 0.9rem; color: #334155; margin: 5px 0 15px; }
+
+.action-buttons { display: flex; gap: 10px; }
+.edit-profile-btn, .search-toggle-btn {
+    flex: 1; padding: 8px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer;
+    font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.edit-profile-btn { background: #f1f5f9; color: #1e293b; }
+.search-toggle-btn { background: #3b82f6; color: white; }
+
+/* SEARCH SECTION */
+.search-section { padding: 0 20px 20px; animation: slideDown 0.3s ease; }
+.search-section input {
+    width: 100%; padding: 10px 15px; border-radius: 12px; border: 1px solid #e2e8f0;
+    background: #f8fafc; font-size: 0.95rem; outline: none; margin-bottom: 10px;
+}
+.search-results { max-height: 200px; overflow-y: auto; }
+.no-res { text-align: center; color: #94a3b8; font-size: 0.9rem; margin-top: 10px; }
+
+/* USER CARD (Search & Lists) */
+.user-card-item {
+    display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f1f5f9;
+}
+.user-card-item img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; }
+.user-text { flex: 1; }
+.user-text h4 { margin: 0; font-size: 0.95rem; color: #1e293b; }
+.user-text small { color: #64748b; font-size: 0.8rem; }
+
+.follow-btn {
+    padding: 6px 16px; border-radius: 6px; border: none; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+    background: #3b82f6; color: white; transition: 0.2s;
+}
+.follow-btn.following { background: #f1f5f9; color: #1e293b; border: 1px solid #e2e8f0; }
+
+/* SUGGESTIONS (Horizontal) */
+.suggestions-section { padding: 10px 20px; margin-bottom: 10px; }
+.suggestions-section h4 { font-size: 0.95rem; margin-bottom: 10px; color: #334155; }
+.suggestions-scroll {
+    display: flex; gap: 12px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none;
+}
+.suggestion-card {
+    min-width: 120px; padding: 15px; border: 1px solid #e2e8f0; border-radius: 12px;
+    text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.sugg-img-box img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; margin-bottom: 5px; }
+.suggestion-card h5 { margin: 0; font-size: 0.9rem; color: #1e293b; }
+.sugg-follow-btn {
+    background: #3b82f6; color: white; border: none; padding: 5px 15px;
+    border-radius: 5px; font-size: 0.8rem; font-weight: 600; width: 100%; cursor: pointer;
+}
+
+/* TABS & GRID */
+.cp-tabs { display: flex; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; }
+.cp-tabs button {
+    flex: 1; padding: 12px; background: none; border: none;
+    font-weight: 600; color: #94a3b8; cursor: pointer; border-bottom: 2px solid transparent;
+}
+.cp-tabs button.active { color: #1e293b; border-bottom-color: #1e293b; }
+
+.cp-grid { min-height: 200px; display: flex; align-items: center; justify-content: center; }
+.empty-state { color: #cbd5e1; font-weight: 600; }
+
+@keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+/* --- CommunityProfile.css UPDATE --- */
+
+/* Avatar Edit Wrapper */
+.avatar-edit-wrapper {
+    position: relative;
+    width: 85px; height: 85px;
+    cursor: pointer;
+}
+.avatar-edit-wrapper img {
+    width: 100%; height: 100%;
+    border-radius: 50%; object-fit: cover;
+    border: 2px solid #3b82f6; /* Blue border in edit mode */
+}
+
+/* Camera Icon Overlay */
+.edit-overlay {
+    position: absolute;
+    bottom: 0; right: 0;
+    background: #3b82f6; color: white;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.9rem;
+    border: 2px solid white;
+}
+/* --- POSTS GRID --- */
+.posts-grid-layout {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 Columns like Instagram */
+    gap: 3px;
+    width: 100%;
+}
+
+.grid-post-item {
+    position: relative;
+    aspect-ratio: 1/1; /* Square boxes */
+    background: #f1f5f9;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.grid-post-item img {
+    width: 100%; height: 100%; object-fit: cover;
+}
+
+.text-post-preview {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    padding: 10px; text-align: center;
+    font-size: 0.8rem; color: #64748b;
+    background: #e2e8f0;
+}
+
+/* Hover Overlay */
+.post-overlay {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.3);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: bold;
+    opacity: 0; transition: 0.2s;
+}
+.grid-post-item:hover .post-overlay { opacity: 1; }
+
+/* --- STORY RING COLORS --- */
+.green-ring {
+    background: linear-gradient(45deg, #22c55e, #16a34a) !important; /* Close Friends */
+}
+
+/* --- VIEWERS MODAL --- */
+.viewers-modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6); z-index: 100;
+    display: flex; align-items: flex-end; /* Bottom Sheet Style */
+}
+
+.viewers-modal {
+    width: 100%; background: white;
+    border-top-left-radius: 20px; border-top-right-radius: 20px;
+    padding: 20px; max-height: 50vh; overflow-y: auto;
+    animation: slideUp 0.3s ease;
+}
+
+.vm-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 15px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px;
+}
+.vm-header h4 { margin: 0; font-size: 1rem; color: #1e293b; display: flex; align-items: center; gap: 8px; }
+
+.viewer-item {
+    display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid #f1f5f9;
+}
+.viewer-item img { width: 40px; height: 40px; border-radius: 50%; }
+.viewer-item span { font-size: 0.9rem; color: #334155; }
+
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }

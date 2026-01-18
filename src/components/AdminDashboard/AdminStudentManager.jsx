@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FaArrowLeft, FaUserPlus, FaTrash, FaSearch, FaIdCard, FaCheckCircle, FaExclamationCircle, FaEllipsisV, FaBan, FaUnlock } from "react-icons/fa";
+import { FaArrowLeft, FaUserPlus, FaTrash, FaSearch, FaIdCard, FaCheckCircle, FaExclamationCircle, FaBan, FaUnlock } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { db } from "../../firebase";
 import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, serverTimestamp, where, updateDoc } from "firebase/firestore";
@@ -13,40 +13,49 @@ const AdminStudentManager = () => {
   
   const [studentsList, setStudentsList] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
   
-  // 🔥 Menu State
-  const [activeMenu, setActiveMenu] = useState(null);
-
   const currentDept = localStorage.getItem("currentDept");
 
+  // 1. SAFE DATA FETCHING
   useEffect(() => {
     if(!currentDept) return;
 
-    const q = query(
-        collection(db, "allowed_students"), 
-        where("department", "==", currentDept),
-        orderBy("createdAt", "desc")
-    );
+    let unsub = null; 
 
-    const unsub = onSnapshot(q, (snapshot) => {
-        const list = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setStudentsList(list);
-    }, (error) => {
-        console.error("Error fetching students:", error);
-    });
+    try {
+        const q = query(
+            collection(db, "allowed_students"), 
+            where("department", "==", currentDept),
+            orderBy("createdAt", "desc")
+        );
 
-    return () => unsub();
+        unsub = onSnapshot(q, (snapshot) => {
+            const list = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setStudentsList(list);
+            setLoading(false);
+        }, (error) => {
+            console.error("Firestore Error:", error);
+            setLoading(false);
+        });
+
+    } catch (err) {
+        console.error("Query Error:", err);
+        setLoading(false);
+    }
+
+    return () => {
+        if(unsub) unsub(); // Cleanup to prevent White Screen Error
+    };
   }, [currentDept]);
 
+  // 2. Add Student
   const handleAddStudent = async (e) => {
     e.preventDefault();
     if (!studentId || !studentName) return alert("Please fill all details!");
 
     const isDuplicate = studentsList.some(s => s.studentId === studentId.trim().toUpperCase());
-    if(isDuplicate) {
-        alert("Student ID already exists in whitelist!");
-        return;
-    }
+    if(isDuplicate) return alert("Student ID already exists!");
 
     try {
         await addDoc(collection(db, "allowed_students"), {
@@ -55,42 +64,25 @@ const AdminStudentManager = () => {
             department: currentDept,
             createdAt: serverTimestamp(),
             isRegistered: false,
-            isBlocked: false // New Field
+            isBlocked: false 
         });
         setStudentId(""); setStudentName("");
-        alert("✅ Student added to Whitelist!");
-    } catch (error) { 
-        alert("Error adding student."); 
-        console.error(error);
-    }
+    } catch (error) { alert("Error adding student."); }
   };
 
+  // 3. Actions
   const handleDelete = async (id) => {
-    if(window.confirm("Remove this student? They won't be able to login.")) {
+    if(window.confirm("Delete this student ID?")) {
         await deleteDoc(doc(db, "allowed_students", id));
-        setActiveMenu(null);
     }
   };
 
-  // 🔥 Block/Unblock Logic
   const handleBlock = async (student) => {
       const newStatus = !student.isBlocked;
-      const action = newStatus ? "Block" : "Unblock";
-      
-      if(window.confirm(`Are you sure you want to ${action} ${student.name}?`)) {
-          await updateDoc(doc(db, "allowed_students", student.id), {
-              isBlocked: newStatus
-          });
-          setActiveMenu(null);
+      if(window.confirm(`Confirm ${newStatus ? "BLOCK" : "UNBLOCK"} for ${student.name}?`)) {
+          await updateDoc(doc(db, "allowed_students", student.id), { isBlocked: newStatus });
       }
   };
-
-  // Close menu when clicking outside
-  useEffect(() => {
-      const closeMenu = () => setActiveMenu(null);
-      document.addEventListener('click', closeMenu);
-      return () => document.removeEventListener('click', closeMenu);
-  }, []);
 
   const filteredStudents = studentsList.filter(s => 
       s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -99,112 +91,99 @@ const AdminStudentManager = () => {
 
   return (
     <div className="asm-container">
+      
+      {/* HEADER */}
       <header className="asm-header">
-        <button className="back-btn" onClick={() => navigate('/admin-dashboard')}>
-            <FaArrowLeft /> Dashboard
+        {/* 🔥 Fixed Back Button: Go back in history */}
+        <button className="back-circle-btn" onClick={() => navigate(-1)}>
+            <FaArrowLeft /> Back
         </button>
         <div className="header-title">
-            <h2>Access Manager</h2>
-            <p>Dept: <span className="highlight-dept">{currentDept}</span></p>
+            <h2>Student Manager</h2>
+            <span className="dept-badge">{currentDept}</span>
         </div>
+        <div style={{width:40}}></div>
       </header>
 
-      <div className="asm-content">
+      <div className="asm-content-wrapper">
         
-        {/* ADD FORM */}
-        <div className="asm-card add-section">
-            <div className="card-header">
-                <h3><FaUserPlus /> Whitelist Student</h3>
-                <p>Allow student to register.</p>
+        {/* TOP: ADD STUDENT BAR (Horizontal) */}
+        <div className="asm-glass-card add-bar">
+            <div className="add-bar-left">
+                <h3><FaUserPlus /> Authorize ID</h3>
             </div>
-            
-            <form onSubmit={handleAddStudent} className="asm-form">
-                <div className="input-group">
-                    <label>Student ID / Roll No</label>
-                    <input 
-                        type="text" placeholder="e.g. BCA001" 
-                        value={studentId} onChange={(e)=>setStudentId(e.target.value)} 
-                        required 
-                    />
-                </div>
-                <div className="input-group">
-                    <label>Student Name</label>
-                    <input 
-                        type="text" placeholder="e.g. Rahul Sharma" 
-                        value={studentName} onChange={(e)=>setStudentName(e.target.value)} 
-                        required 
-                    />
-                </div>
-                <button type="submit" className="add-btn">
-                    Authorize ID
-                </button>
+            <form onSubmit={handleAddStudent} className="add-form-inline">
+                <input 
+                    placeholder="ID (e.g. BCA01)" 
+                    value={studentId} onChange={(e)=>setStudentId(e.target.value)} 
+                    className="glass-input-sm" required 
+                />
+                <input 
+                    placeholder="Student Name" 
+                    value={studentName} onChange={(e)=>setStudentName(e.target.value)} 
+                    className="glass-input-sm" required 
+                />
+                <button type="submit" className="glass-btn-primary sm-btn">Add</button>
             </form>
         </div>
 
-        {/* LIST SECTION */}
-        <div className="asm-card list-section">
-            <div className="list-header">
-                <h3>Allowed Students ({filteredStudents.length})</h3>
-                <div className="search-box">
+        {/* BOTTOM: LIST SECTION (Table) */}
+        <div className="asm-list-section">
+            
+            <div className="list-toolbar">
+                <h3>Total Students: {filteredStudents.length}</h3>
+                <div className="asm-search-bar">
                     <FaSearch />
                     <input 
-                        placeholder="Search ID or Name..." 
+                        placeholder="Search..." 
                         value={searchTerm} onChange={e=>setSearchTerm(e.target.value)}
                     />
                 </div>
             </div>
 
-            <div className="table-wrapper">
-                <table>
+            {/* GLASS TABLE (List View) */}
+            <div className="glass-table-container">
+                <table className="glass-table">
                     <thead>
                         <tr>
-                            <th>Std. ID</th> {/* 🔥 Changed Header */}
+                            <th>Student ID</th>
                             <th>Name</th>
                             <th>Status</th>
                             <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredStudents.length > 0 ? filteredStudents.map(student => (
-                            <tr key={student.id}>
-                                <td className="id-col"><FaIdCard /> {student.studentId}</td>
-                                
-                                {/* 🔥 Name automatically updates via RegisterPage now */}
-                                <td className="name-col" style={{opacity: student.isBlocked ? 0.5 : 1}}>
-                                    {student.name}
-                                    {student.isBlocked && <span className="blocked-tag">BLOCKED</span>}
-                                </td>
-                                
-                                <td>
-                                    <span className={`status-badge ${student.isRegistered ? 'reg' : 'pend'}`}>
-                                        {student.isRegistered ? <><FaCheckCircle/> Registered</> : <><FaExclamationCircle/> Pending</>}
-                                    </span>
-                                </td>
-                                
-                                <td className="action-cell" onClick={(e) => e.stopPropagation()}>
-                                    <button className="menu-btn" onClick={() => setActiveMenu(activeMenu === student.id ? null : student.id)}>
-                                        <FaEllipsisV />
-                                    </button>
-
-                                    {/* 🔥 3-DOT POPUP MENU */}
-                                    {activeMenu === student.id && (
-                                        <div className="action-menu">
-                                            <div className="menu-item" onClick={() => handleBlock(student)}>
-                                                {student.isBlocked ? <><FaUnlock/> Unblock</> : <><FaBan/> Block Access</>}
-                                            </div>
-                                            <div className="menu-item delete" onClick={() => handleDelete(student.id)}>
-                                                <FaTrash /> Delete ID
-                                            </div>
-                                        </div>
-                                    )}
-                                </td>
-                            </tr>
-                        )) : (
-                            <tr><td colSpan="4" className="no-data">No students found.</td></tr>
+                        {loading ? (
+                            <tr><td colSpan="4" className="text-center">Loading Data...</td></tr>
+                        ) : filteredStudents.length > 0 ? (
+                            filteredStudents.map((student) => (
+                                <tr key={student.id} className={student.isBlocked ? "row-blocked" : ""}>
+                                    <td className="id-cell"><FaIdCard/> {student.studentId}</td>
+                                    <td className="name-cell">{student.name}</td>
+                                    <td>
+                                        {student.isRegistered ? 
+                                            <span className="badge reg"><FaCheckCircle/> Active</span> : 
+                                            <span className="badge pend"><FaExclamationCircle/> Pending</span>
+                                        }
+                                        {student.isBlocked && <span className="badge blk">BLOCKED</span>}
+                                    </td>
+                                    <td className="action-cell">
+                                        <button className="icon-btn" onClick={() => handleBlock(student)} title="Block/Unblock">
+                                            {student.isBlocked ? <FaUnlock className="text-green"/> : <FaBan className="text-orange"/>}
+                                        </button>
+                                        <button className="icon-btn delete" onClick={() => handleDelete(student.id)} title="Delete">
+                                            <FaTrash />
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr><td colSpan="4" className="text-center">No students found.</td></tr>
                         )}
                     </tbody>
                 </table>
             </div>
+
         </div>
 
       </div>

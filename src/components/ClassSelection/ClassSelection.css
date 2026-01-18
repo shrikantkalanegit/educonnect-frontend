@@ -1,97 +1,92 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
 
-/* --- MAIN BACKGROUND (Aurora) --- */
-.class-selection-container {
-  min-height: 100vh;
-  padding: 40px 20px;
-  font-family: 'Outfit', sans-serif;
-  background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
-  background-attachment: fixed;
-  color: #1e293b;
+/* --- MAIN CONTAINER --- */
+.class-wrapper {
+    min-height: 100vh;
+    font-family: 'Outfit', sans-serif;
+    /* Soft Purple-Green-Pink Gradient (Same as Dashboard) */
+    background: linear-gradient(135deg, #f3e8ff 0%, #d1fae5 50%, #fce7f3 100%);
+    padding: 20px;
+    color: #1e293b;
 }
 
 /* --- HEADER --- */
-.selection-header {
-  text-align: center; margin-bottom: 50px;
-  display: flex; flex-direction: column; align-items: center; gap: 10px;
-}
-.selection-header h1 { 
-    font-size: 2.2rem; font-weight: 800; margin: 0; color: #1e293b; letter-spacing: -1px;
-}
-.selection-header p {
-    color: #475569; font-size: 1rem; font-weight: 500; margin: 0;
+.class-header {
+    display: flex; justify-content: space-between; align-items: center;
+    max-width: 1000px; margin: 0 auto 40px; padding: 10px;
 }
 
-.back-btn { 
-  background: rgba(255,255,255,0.5); padding: 8px 20px; border-radius: 30px; 
-  border: 1px solid rgba(255,255,255,0.6); cursor: pointer; font-weight: 700;
-  display: flex; align-items: center; gap: 8px; color: #475569; transition: 0.3s;
-}
-.back-btn:hover { background: white; transform: translateY(-2px); }
-
-/* --- APP GRID (iPhone Style) --- */
-.years-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); /* Icons fit automatically */
-  gap: 40px 20px;
-  max-width: 800px;
-  margin: 0 auto;
-  justify-items: center;
-}
-
-/* --- APP ICON ITEM --- */
-.year-app-item {
-    display: flex; flex-direction: column; align-items: center; gap: 10px;
-    cursor: pointer; transition: 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
-    width: 90px;
-    position: relative;
-}
-.year-app-item:hover .year-squircle { transform: scale(1.1); box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
-.year-app-item:active .year-squircle { transform: scale(0.95); opacity: 0.8; }
-
-/* --- SQUIRCLE SHAPE --- */
-.year-squircle {
-    width: 75px; height: 75px;
-    border-radius: 18px; /* iOS App Radius */
+.back-btn-glass {
+    width: 45px; height: 45px; border-radius: 50%; border: none;
+    background: white; color: #1e293b;
     display: flex; align-items: center; justify-content: center;
-    font-size: 2rem; color: white;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-    background-size: 150%;
-    position: relative;
-    border: 1px solid rgba(255,255,255,0.3);
+    cursor: pointer; transition: 0.2s;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05); font-size: 1rem;
+}
+.back-btn-glass:hover { transform: scale(1.1); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+
+.header-text { text-align: center; }
+.header-text h1 { margin: 0; font-size: 1.8rem; font-weight: 800; color: #1e293b; }
+.header-text p { margin: 5px 0 0; font-size: 0.95rem; color: #64748b; }
+
+/* --- GRID LAYOUT --- */
+.class-grid {
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+    gap: 25px;
+    max-width: 1000px; margin: 0 auto;
 }
 
-.year-label {
-    font-size: 0.85rem; font-weight: 600; color: #334155;
-    text-align: center; text-shadow: 0 1px 1px rgba(255,255,255,0.5);
-    line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+/* --- CARDS --- */
+.class-card {
+    position: relative; height: 180px; border-radius: 24px; padding: 25px;
+    overflow: hidden; cursor: pointer; transition: 0.3s ease;
+    background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    display: flex; flex-direction: column; justify-content: center;
 }
 
-/* --- DELETE BADGE (Admin Only) --- */
-.delete-badge {
-    position: absolute; top: -6px; right: -6px;
-    background: #ff3b30; color: white; width: 24px; height: 24px;
-    border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    font-size: 0.75rem; z-index: 10;
+.class-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+
+/* Card Colors (Soft Pastel Gradients) */
+.blue-card { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); }
+.orange-card { background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%); }
+.green-card { background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%); }
+.purple-card { background: linear-gradient(135deg, #f3e8ff 0%, #d8b4fe 100%); }
+.red-card { background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); }
+.cyan-card { background: linear-gradient(135deg, #cffafe 0%, #a5f3fc 100%); }
+
+/* Card Content */
+.card-content { position: relative; z-index: 2; }
+
+.icon-box {
+    width: 50px; height: 50px; background: rgba(255,255,255,0.6);
+    border-radius: 14px; display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; color: #1e293b; margin-bottom: 15px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
 }
 
-/* --- MODAL (Admin Add Subject) --- */
-.modal-overlay { 
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-    background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); 
-    display: flex; justify-content: center; align-items: center; z-index: 1000; 
+.class-card h3 { margin: 0; font-size: 1.4rem; font-weight: 800; color: #1e293b; }
+.class-card p { margin: 5px 0 15px; font-size: 0.9rem; color: #475569; font-weight: 600; }
+
+.enter-btn {
+    background: #1e293b; color: white; border: none;
+    padding: 8px 20px; border-radius: 30px; font-size: 0.85rem; font-weight: 700;
+    cursor: pointer; transition: 0.2s;
 }
-.modal-content { 
-    background: white; padding: 30px; border-radius: 24px; 
-    width: 85%; max-width: 350px; text-align: center; 
-    box-shadow: 0 20px 50px rgba(0,0,0,0.2); 
+.class-card:hover .enter-btn { background: white; color: #1e293b; }
+
+/* Background Icon Effect */
+.card-icon-bg {
+    position: absolute; right: -20px; bottom: -30px;
+    font-size: 8rem; opacity: 0.1; color: #1e293b;
+    transform: rotate(-15deg); transition: 0.4s; z-index: 1;
 }
-.modal-content h3 { margin: 0 0 20px; color: #1e293b; }
-.modal-content input { 
-    width: 100%; padding: 12px; margin-bottom: 20px; box-sizing: border-box;
-    border: 1px solid #e2e8f0; border-radius: 12px; font-size: 1rem; outline: none; background: #f8fafc;
+.class-card:hover .card-icon-bg { transform: rotate(0deg) scale(1.1); opacity: 0.15; }
+
+/* Responsive */
+@media (max-width: 600px) {
+    .class-header { flex-direction: column; gap: 15px; text-align: center; }
+    .class-grid { grid-template-columns: 1fr; }
 }
-.modal-actions { display: flex; gap: 10px; }
-.save-btn { flex: 1; background: #2563eb; color: white; padding: 12px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
-.cancel-btn { flex: 1; background: #f1f5f9; color: #64748b; padding: 12px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }

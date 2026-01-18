@@ -1,0 +1,123 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap');
+
+/* --- MAIN BACKGROUND --- */
+.exam-portal-container {
+  min-height: 100vh;
+  padding: 40px 20px;
+  font-family: 'Outfit', sans-serif;
+  background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
+  background-attachment: fixed;
+  color: #1e293b;
+}
+
+/* --- HEADER --- */
+.ep-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 50px; max-width: 1100px; margin-left: auto; margin-right: auto;
+}
+.ep-header h1 { margin: 0; font-size: 2.2rem; font-weight: 800; color: #1e293b; letter-spacing: -1px; }
+.ep-header p { margin: 5px 0 0; color: #475569; font-size: 1rem; }
+
+.ep-back-btn { 
+  background: rgba(255,255,255,0.5); padding: 10px 20px; border-radius: 30px; 
+  border: 1px solid rgba(255,255,255,0.6); cursor: pointer; font-weight: 700;
+  display: flex; align-items: center; gap: 8px; color: #1e293b; transition: 0.3s;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+.ep-back-btn:hover { background: white; transform: translateX(-5px); }
+
+/* --- GRID LAYOUT --- */
+.ep-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Responsive Grid */
+  gap: 25px;
+  max-width: 1100px; margin: 0 auto;
+}
+
+/* --- PAPER CARD --- */
+.paper-card {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    overflow: hidden;
+    cursor: pointer; transition: 0.3s;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    position: relative;
+    display: flex; flex-direction: column;
+}
+.paper-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); background: rgba(255,255,255,0.8); }
+
+/* Top Strip (Decoration) */
+.paper-top-strip {
+    height: 60px; width: 100%;
+    display: flex; align-items: center; justify-content: center;
+}
+.strip-icon { color: white; font-size: 1.8rem; drop-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+
+/* Content */
+.paper-content { padding: 20px; flex: 1; display: flex; flex-direction: column; }
+.paper-badge { 
+    background: #e2e8f0; color: #475569; font-size: 0.7rem; font-weight: 700; 
+    padding: 3px 8px; border-radius: 6px; width: fit-content; margin-bottom: 8px; 
+}
+.paper-content h4 { margin: 0 0 5px; font-size: 1.1rem; color: #1e293b; line-height: 1.3; }
+.paper-sub { margin: 0 0 15px; font-size: 0.9rem; color: #64748b; font-weight: 500; }
+.paper-meta { margin-top: auto; display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: #94a3b8; }
+
+/* Add Card Style */
+.add-paper-card {
+    border: 2px dashed rgba(255,255,255,0.6);
+    background: rgba(255,255,255,0.2);
+    align-items: center; justify-content: center;
+    min-height: 200px;
+}
+.add-paper-card:hover { border-color: white; background: rgba(255,255,255,0.4); }
+.add-icon-circle {
+    width: 50px; height: 50px; border-radius: 50%; background: white;
+    color: #3b82f6; display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; margin-bottom: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+/* Delete Button */
+.ep-delete-btn {
+    position: absolute; top: 10px; right: 10px;
+    width: 30px; height: 30px; background: rgba(255, 255, 255, 0.2);
+    color: white; border-radius: 50%; border: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; opacity: 0; transition: 0.2s;
+}
+.ep-delete-btn:hover { background: #ef4444; }
+.paper-card:hover .ep-delete-btn { opacity: 1; }
+
+/* --- MODAL --- */
+.ep-modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+    display: flex; justify-content: center; align-items: center; z-index: 1000;
+}
+.ep-modal {
+    background: white; width: 90%; max-width: 400px;
+    padding: 30px; border-radius: 24px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+    animation: popUp 0.3s ease;
+}
+.ep-modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+.ep-modal-head h3 { margin: 0; font-size: 1.3rem; color: #1e293b; }
+.ep-modal-head svg { cursor: pointer; color: #94a3b8; transition: 0.2s; }
+.ep-modal-head svg:hover { color: #ef4444; transform: rotate(90deg); }
+
+.ep-input-group { margin-bottom: 15px; display: flex; align-items: center; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 0 15px; }
+.ep-input-group input { border: none; background: transparent; padding: 14px 0; width: 100%; outline: none; }
+.ep-row-inputs { display: flex; gap: 15px; margin-bottom: 15px; }
+.ep-row-inputs input, .ep-row-inputs select { background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 12px; width: 100%; outline: none; }
+
+.ep-upload-btn {
+    width: 100%; background: #1e293b; color: white; padding: 14px;
+    border: none; border-radius: 12px; font-weight: 700;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: 0.2s;
+}
+.ep-upload-btn:hover { background: #0f172a; transform: translateY(-2px); }
+
+@keyframes popUp { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }

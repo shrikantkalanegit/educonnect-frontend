@@ -1,0 +1,115 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+
+/* --- BACKGROUND --- */
+.admin-comm-wrapper {
+    min-height: 100vh;
+    font-family: 'Outfit', sans-serif;
+    /* Professional Admin Gradient */
+    background: linear-gradient(135deg, #f0f9ff 0%, #cbebff 100%);
+    color: #1e293b;
+    display: flex; flex-direction: column;
+}
+
+/* --- HEADER --- */
+.ac-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 15px 20px;
+    background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(15px);
+    border-bottom: 1px solid rgba(255,255,255,0.5);
+    position: sticky; top: 0; z-index: 50;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+}
+
+.back-circle-btn {
+    width: 40px; height: 40px; border-radius: 50%; border: 1px solid #e2e8f0;
+    background: white; color: #64748b; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: 0.2s;
+}
+.back-circle-btn:hover { background: #1e293b; color: white; border-color: #1e293b; }
+
+.header-info { text-align: center; }
+.header-info h1 { margin: 0; font-size: 1.2rem; font-weight: 800; color: #1e293b; }
+.header-info p { margin: 2px 0 0; font-size: 0.8rem; color: #64748b; font-weight: 600; }
+
+.ac-content { max-width: 600px; margin: 0 auto; padding: 20px; width: 100%; box-sizing: border-box; }
+
+/* --- INPUT CARD --- */
+.ac-input-card {
+    background: white; padding: 15px; border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 30px;
+    border: 1px solid #e2e8f0;
+}
+
+.ac-input-row { display: flex; align-items: center; gap: 15px; }
+
+.admin-avatar {
+    width: 45px; height: 45px; background: #e0f2fe; color: #0284c7;
+    border-radius: 12px; display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem;
+}
+
+.ac-input-row input {
+    flex: 1; border: none; background: #f8fafc; padding: 12px 15px;
+    border-radius: 15px; outline: none; font-size: 0.95rem; color: #334155;
+    transition: 0.2s;
+}
+.ac-input-row input:focus { background: #f1f5f9; box-shadow: 0 0 0 2px #e0f2fe; }
+
+.ac-send-btn {
+    width: 45px; height: 45px; border-radius: 12px; border: none;
+    background: #1e293b; color: white; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; transition: 0.2s;
+}
+.ac-send-btn:hover { background: #3b82f6; transform: scale(1.05); }
+
+/* --- FEED LIST --- */
+.ac-feed-list { display: flex; flex-direction: column; gap: 20px; }
+
+.ac-post-card {
+    background: white; border-radius: 20px; padding: 20px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.02);
+    border: 1px solid #f1f5f9; transition: 0.2s;
+}
+.ac-post-card:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+
+/* Admin Post Highlight */
+.admin-highlight {
+    border: 2px solid #a855f7; background: #faf5ff;
+}
+
+.post-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+
+.user-meta { display: flex; gap: 12px; align-items: center; }
+.user-meta img { 
+    width: 42px; height: 42px; border-radius: 50%; object-fit: cover; 
+    border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.user-meta h4 { margin: 0; font-size: 1rem; color: #1e293b; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+.user-meta small { font-size: 0.75rem; color: #64748b; font-weight: 500; }
+
+.faculty-badge {
+    background: #a855f7; color: white; font-size: 0.65rem; padding: 2px 8px;
+    border-radius: 6px; display: flex; align-items: center; gap: 4px;
+}
+
+.delete-icon-btn {
+    background: #fee2e2; color: #ef4444; border: none;
+    width: 32px; height: 32px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: 0.2s; font-size: 0.9rem;
+}
+.delete-icon-btn:hover { background: #ef4444; color: white; }
+
+.post-content p {
+    font-size: 0.95rem; color: #334155; line-height: 1.6; margin: 0;
+}
+
+/* Empty State */
+.no-posts-view {
+    text-align: center; padding: 60px 20px;
+    color: #94a3b8;
+}
+.faded-icon { font-size: 3rem; opacity: 0.2; margin-bottom: 15px; }
+.no-posts-view h3 { margin: 0; color: #475569; }

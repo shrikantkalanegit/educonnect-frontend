@@ -1,80 +1,162 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
 
-/* --- MAIN BACKGROUND --- */
+/* --- MAIN CONTAINER --- */
 .stu-comm-container {
   min-height: 100vh;
-  padding: 40px 20px;
+  padding: 20px;
   font-family: 'Outfit', sans-serif;
-  
-  /* 🔥 Premium Aurora Gradient */
   background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
   background-attachment: fixed;
   color: #1e293b;
+  padding-bottom: 80px;
 }
 
-/* --- HEADER --- */
-.stu-comm-header { 
-    margin-bottom: 60px; text-align: center; 
-}
-.stu-comm-header h1 { 
-    color: #1e293b; font-size: 2.2rem; margin-bottom: 8px; font-weight: 800; 
-    letter-spacing: -1px; text-shadow: 0 2px 10px rgba(255,255,255,0.3);
-}
-.stu-comm-header p { 
-    color: #475569; font-size: 1rem; font-weight: 500;
-}
+/* --- StudentCommunity.css UPDATE --- */
 
-/* --- iOS APP GRID --- */
-.stu-comm-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); /* Icons automatically fit */
-  gap: 40px 20px; /* Vertical gap jyada text ke liye */
-  max-width: 600px; /* Center align rakhne ke liye */
-  margin: 0 auto;
-  justify-items: center;
-}
-
-/* --- APP ICON ITEM --- */
-.app-item {
-    display: flex; flex-direction: column; align-items: center; gap: 10px;
-    cursor: pointer; transition: 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
-    width: 90px;
-}
-
-.app-item:hover .app-squircle { 
-    transform: scale(1.1); 
-    box-shadow: 0 15px 35px rgba(0,0,0,0.2); 
-}
-.app-item:active .app-squircle { 
-    transform: scale(0.95); opacity: 0.8; 
-}
-
-/* --- THE SQUIRCLE (Apple Icon Shape) --- */
-.app-squircle {
-    width: 75px; height: 75px;
-    border-radius: 20px; /* iOS Icon Radius */
-    display: flex; align-items: center; justify-content: center;
-    font-size: 2rem; color: white;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-    background-size: 150%;
+/* New Header Layout */
+.custom-header-layout {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
     position: relative;
-    border: 1px solid rgba(255,255,255,0.3);
 }
 
-/* --- TEXT LABEL --- */
-.app-label {
-    font-size: 0.85rem; font-weight: 600; color: #334155;
-    text-align: center; line-height: 1.2;
-    text-shadow: 0 1px 1px rgba(255,255,255,0.5);
-    max-width: 100px;
+.header-title-box {
+    text-align: center;
+    flex: 1; /* Takes up available space */
 }
 
-/* --- NOTIFICATION BADGE --- */
-.notif-badge {
-    position: absolute; top: -5px; right: -5px;
-    background: #ff3b30; color: white; border: 2px solid white;
-    font-size: 0.7rem; font-weight: bold;
-    width: 22px; height: 22px; border-radius: 50%;
+/* Real Profile Pic Container inside Header */
+.header-profile-pic-container {
+    width: 45px; height: 45px;
+    border-radius: 50%;
+    padding: 2px;
+    background: white;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: 0.2s;
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+.header-profile-pic-container:hover { transform: scale(1.05); }
+
+.header-profile-pic-container img {
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Adjust Back button position if needed */
+.back-btn-glass { position: relative; left: 0; }
+.hub-tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; flex-wrap: wrap; }
+.tab-btn {
+    background: rgba(255,255,255,0.4); border: 1px solid rgba(255,255,255,0.5);
+    padding: 10px 20px; border-radius: 30px; font-size: 0.9rem; font-weight: 600;
+    color: #475569; cursor: pointer; display: flex; align-items: center; gap: 8px;
+}
+.tab-btn.active { background: #1e293b; color: white; }
+
+.comm-feed-area { max-width: 600px; margin: 0 auto; }
+
+/* Create Post */
+.create-post-glass {
+    background: white; padding: 15px; border-radius: 24px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 25px;
+}
+.cp-input-row { display: flex; align-items: center; gap: 12px; }
+.cp-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+.cp-input-row input {
+    flex: 1; border: none; background: #f1f5f9; padding: 12px 15px;
+    border-radius: 20px; outline: none; font-family: 'Outfit', sans-serif; color: #334155;
+}
+
+/* Image Preview */
+.image-preview-box { position: relative; margin-bottom: 10px; width: 100%; max-height: 200px; overflow: hidden; border-radius: 12px; }
+.image-preview-box img { width: 100%; object-fit: cover; }
+.remove-img { 
+    position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); 
+    color: white; border-radius: 50%; padding: 5px; cursor: pointer; 
+}
+
+/* Buttons */
+.send-icon-btn {
+    background: #3b82f6; color: white; width: 40px; height: 40px; border-radius: 50%;
+    border: none; display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.attach-icon-btn {
+    background: #f1f5f9; color: #64748b; width: 40px; height: 40px; border-radius: 50%;
+    border: none; display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+
+/* --- FEED CARD --- */
+.feed-card-glass {
+    background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px);
+    border-radius: 24px; padding: 20px; margin-bottom: 20px;
+    border: 1px solid rgba(255,255,255,0.6);
+}
+.teacher-post { border: 2px solid #a855f7; background: rgba(243, 232, 255, 0.9); }
+.teacher-badge { background: #a855f7; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; margin-left: 5px; }
+
+.post-header { display: flex; justify-content: space-between; margin-bottom: 12px; }
+.poster-info { display: flex; gap: 10px; align-items: center; }
+.poster-info img { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 2px solid white; }
+.poster-info h4 { margin: 0; font-size: 1rem; color: #1e293b; font-weight: 700; }
+.poster-info small { font-size: 0.75rem; color: #64748b; }
+
+.post-body p { font-size: 0.95rem; color: #334155; line-height: 1.5; margin: 0 0 10px; }
+.post-image { width: 100%; border-radius: 12px; margin-top: 10px; max-height: 300px; object-fit: cover; }
+
+.post-footer { display: flex; gap: 20px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 12px; }
+.action-btn { background: transparent; border: none; color: #64748b; font-size: 1.1rem; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.action-btn.liked { color: #ef4444; }
+.delete-icon { cursor: pointer; color: #94a3b8; transition: 0.2s; }
+.delete-icon:hover { color: #ef4444; }
+/* --- COMMENTS & MENTIONS --- */
+
+.comment-section {
+    margin-top: 15px;
+    background: rgba(255,255,255,0.5);
+    border-radius: 12px;
+    padding: 10px;
+    animation: fadeIn 0.3s ease-in;
+}
+
+.comment-list {
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 10px;
+    display: flex; flex-direction: column; gap: 8px;
+}
+
+.comment-bubble {
+    background: white; padding: 8px 12px;
+    border-radius: 15px; font-size: 0.85rem;
+    color: #334155;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+}
+
+.comment-input-row {
+    display: flex; gap: 10px;
+}
+.comment-input-row input {
+    flex: 1; border: none; padding: 8px 12px;
+    border-radius: 20px; outline: none; font-size: 0.9rem;
+}
+.comment-input-row button {
+    background: #3b82f6; color: white; border: none;
+    width: 35px; height: 35px; border-radius: 50%;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+
+/* Mention Highlight */
+.mention-text {
+    color: #2563eb; font-weight: 600; background: #eff6ff;
+    padding: 1px 4px; border-radius: 4px;
+}
+
+/* Back Button */
+.back-btn-glass {
+    width: 40px; height: 40px; border-radius: 50%; border: none;
+    background: white; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }

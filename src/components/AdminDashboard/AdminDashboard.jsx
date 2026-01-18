@@ -3,7 +3,7 @@ import "./AdminDashboard.css";
 import { 
   FaBell, FaUserCircle, FaChalkboardTeacher, 
   FaCrown, FaRobot, FaQrcode, FaBook, FaFileAlt, 
-  FaComments, FaUniversity, FaUserGraduate, FaBullhorn, FaLayerGroup 
+  FaComments, FaUniversity, FaUserGraduate, FaBullhorn, FaUserCog, FaIdCard 
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../../firebase";
@@ -19,7 +19,7 @@ const AdminDashboard = () => {
   const [stats, setStats] = useState({ students: 0, faculty: 0, notices: 0 });
   const [liveNotices, setLiveNotices] = useState([]);
 
-  // 🔥 Vibrant Gradients for App Icons
+  // 🔥 Gradients
   const gradClassroom = "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)";
   const gradStaff = "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)";
   const gradComm = "linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)";
@@ -33,29 +33,17 @@ const AdminDashboard = () => {
     setCurrentDept(dept);
   }, [navigate]);
 
-  // 1. FETCH STATS (Fixed Faculty Count Logic)
+  // 1. FETCH STATS
   useEffect(() => {
     if (!currentDept) return;
-
     const fetchStats = async () => {
       try {
-        // Students Count
-        const studentsQ = query(
-          collection(db, "users"), 
-          where("department", "==", currentDept),
-          where("role", "==", "student")
-        );
+        const studentsQ = query(collection(db, "users"), where("department", "==", currentDept), where("role", "==", "student"));
         const studentSnap = await getCountFromServer(studentsQ);
 
-        // Faculty Count
-        const facultyQ = query(
-          collection(db, "admins"),
-          where("department", "==", currentDept) 
-        );
+        const facultyQ = query(collection(db, "admins"), where("department", "==", currentDept));
         const facultySnap = await getCountFromServer(facultyQ);
         
-        // 🔥 LOGIC FIX: Agar count 0 hai, iska matlab aap super admin ho ya field missing hai.
-        // Isliye kam se kam 1 (Self) dikhana chahiye.
         let facultyCount = facultySnap.data().count;
         if(facultyCount === 0) facultyCount = 1; 
 
@@ -64,33 +52,41 @@ const AdminDashboard = () => {
             students: studentSnap.data().count,
             faculty: facultyCount
         }));
-
       } catch (error) { console.error("Stats Error:", error); }
     };
-
     fetchStats();
   }, [currentDept]);
 
-  // 2. FETCH PROFILE
+  // 2. FETCH PROFILE (🔥 ERROR FIX HERE)
   useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
+    let unsubSnapshot = null; // Store listener reference
+
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       if (user) {
-        onSnapshot(doc(db, "admins", user.uid), (docSnap) => {
+        // Agar pehle se koi listener chal raha hai, to usse band karo
+        if (unsubSnapshot) unsubSnapshot();
+
+        // Naya listener shuru karo
+        unsubSnapshot = onSnapshot(doc(db, "admins", user.uid), (docSnap) => {
           if (docSnap.exists()) {
-            setProfilePic(docSnap.data().profilePic);
+            setProfilePic(docSnap.data().photo || docSnap.data().profilePic);
             setAdminName(docSnap.data().name.split(" ")[0]);
           }
         });
       }
     });
-    return () => unsubscribeAuth();
+
+    // Cleanup Function (Jab component hatega, sab band ho jayega)
+    return () => {
+      unsubscribeAuth();
+      if (unsubSnapshot) unsubSnapshot();
+    };
   }, []);
 
   // 3. FETCH NOTICES
   useEffect(() => {
     if (!currentDept) return;
     const noticeQuery = query(collection(db, "notices"), orderBy("createdAt", "desc"));
-    
     const unsubNotice = onSnapshot(noticeQuery, (snapshot) => {
         const now = Date.now();
         const validNotices = [];
@@ -109,7 +105,7 @@ const AdminDashboard = () => {
   return (
     <div className="admin-wrapper-ios">
       
-      {/* GLASS NAVBAR */}
+      {/* NAVBAR */}
       <nav className="ios-navbar">
         <div className="brand-box">
             <div className="brand-logo">E</div>
@@ -143,7 +139,6 @@ const AdminDashboard = () => {
                     <div className="widget-icon" style={{background:'#4facfe'}}><FaUserGraduate/></div>
                 </div>
             </div>
-            
             <div className="ios-widget">
                 <div className="widget-content">
                     <h3>{stats.faculty}</h3>
@@ -151,7 +146,6 @@ const AdminDashboard = () => {
                     <div className="widget-icon" style={{background:'#f093fb'}}><FaCrown/></div>
                 </div>
             </div>
-
             <div className="ios-widget">
                 <div className="widget-content">
                     <h3>{stats.notices}</h3>
@@ -176,10 +170,24 @@ const AdminDashboard = () => {
                 <div className="app-squircle" style={{background: gradStaff}}>
                     <FaCrown />
                 </div>
-                <span>Faculty</span>
+                <span>Staff Room</span>
             </div>
 
-            <div className="app-icon-container" onClick={() => navigate('/admin/community-selection')}>
+            <div className="app-icon-container" onClick={() => navigate('/admin/manage-access')}>
+                <div className="app-squircle" style={{background: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)'}}>
+                    <FaUserCog />
+                </div>
+                <span>Student Mng</span>
+            </div>
+
+            <div className="app-icon-container" onClick={() => alert("ID Card Generator - Feature Coming Next!")}>
+                <div className="app-squircle" style={{background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'}}>
+                    <FaIdCard />
+                </div>
+                <span>ID Cards</span>
+            </div>
+
+            <div className="app-icon-container" onClick={() => navigate('/admin/community')}>
                 <div className="app-squircle" style={{background: gradComm}}>
                     <FaComments />
                 </div>
@@ -213,16 +221,9 @@ const AdminDashboard = () => {
                 </div>
                 <span>Exams</span>
             </div>
-
-            <div className="app-icon-container" onClick={() => navigate('/admin/manage-access')}>
-                <div className="app-squircle" style={{background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)'}}>
-                    <FaLayerGroup />
-                </div>
-                <span>IDs</span>
-            </div>
         </div>
 
-        {/* 3. NOTICE BOARD (Solid White Cards) */}
+        {/* 3. NOTICE BOARD */}
         <div className="section-label">Live Updates</div>
         <div className="ios-list-container">
             {liveNotices.length > 0 ? (
@@ -234,7 +235,7 @@ const AdminDashboard = () => {
                             <p>{notice.message}</p>
                         </div>
                         <div className="row-meta">
-                            <span className="meta-badge">{notice.durationLabel}</span>
+                            <span className="meta-badge">{notice.durationLabel || "New"}</span>
                         </div>
                     </div>
                 ))
