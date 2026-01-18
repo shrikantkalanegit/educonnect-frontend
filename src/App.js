@@ -10,7 +10,8 @@ import AdminLogin from "./components/AdminLogin/AdminLogin";
 // --- 2. STUDENT COMPONENTS ---
 import HomePage from './components/HomePage/HomePage'; 
 import BooksPage from './components/BooksPage/BooksPage'; 
-import SubjectList from './components/SubjectPage/SubjectList';
+// import SubjectList from './components/ClassSelection/SubjectList';
+import SubjectPage from './components/SubjectPage/SubjectPage';
 import StudentProfile from './components/StudentProfile/StudentProfile';
 import StudentScanner from "./components/Student/StudentScanner";
 import GroupChatPage from './components/SubjectPage/GroupChatPage'; 
@@ -67,7 +68,7 @@ function App() {
             <ProtectedRoute requiredRole="student"> <StudentExams /> </ProtectedRoute>
           } />
           <Route path="/subject" element={
-            <ProtectedRoute requiredRole="student"> <SubjectList /> </ProtectedRoute>
+            <ProtectedRoute requiredRole="student"> <SubjectPage /> </ProtectedRoute>
           } />
           <Route path="/subject/:subjectName" element={
             <ProtectedRoute requiredRole="student"> <GroupChatPage /> </ProtectedRoute>

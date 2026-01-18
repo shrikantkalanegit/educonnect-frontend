@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react"; // 👈 useRef hata diya
 import { useNavigate } from "react-router-dom"; 
 import { auth, db } from "../../firebase"; 
 import { updateProfile } from "firebase/auth";
@@ -10,11 +10,8 @@ import {
     FaTint, FaPhone 
 } from "react-icons/fa";
 
-// 👇 Import Cropper
 import Cropper from "react-easy-crop";
-
-// ❌ OLD IMPORT REMOVED
-// import { getCroppedImg } from "../../utils/cropUtils"; 
+import { getCroppedImg } from "../../utils/cropUtils"; 
 
 const StudentProfile = () => {
   const navigate = useNavigate();
@@ -30,7 +27,7 @@ const StudentProfile = () => {
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
   const [isCropping, setIsCropping] = useState(false); 
 
-  // --- USER DATA ---
+  // --- USER DATA STATE ---
   const [userData, setUserData] = useState({
     name: "", email: "", bio: "Student at EduConnect",
     studentId: "", department: "", year: "",
@@ -40,12 +37,14 @@ const StudentProfile = () => {
 
   const [photoURL, setPhotoURL] = useState("https://cdn-icons-png.flaticon.com/512/149/149071.png");
 
+  // --- DATA LOAD ---
   useEffect(() => {
     if (user) {
       setPhotoURL(user.photoURL || "https://cdn-icons-png.flaticon.com/512/149/149071.png");
       const fetchUserData = async () => {
         try {
-            const docSnap = await getDoc(doc(db, "users", user.uid));
+            const docRef = doc(db, "users", user.uid);
+            const docSnap = await getDoc(docRef);
             if (docSnap.exists()) {
                const data = docSnap.data();
                setUserData({
@@ -68,11 +67,13 @@ const StudentProfile = () => {
   }, [user]);
 
   const handleChange = (e) => {
-    setUserData({ ...userData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setUserData({ ...userData, [name]: value });
   };
 
   const handleAddressChange = (e) => {
-    setUserData({ ...userData, address: { ...userData.address, [e.target.name]: e.target.value } });
+    const { name, value } = e.target;
+    setUserData({ ...userData, address: { ...userData.address, [name]: value } });
   };
 
   const onFileChange = async (e) => {
@@ -94,11 +95,10 @@ const StudentProfile = () => {
   const showCroppedImage = async () => {
     try {
       setLoading(true);
-      // 🔥 Calling Internal Function
       const croppedImageBlob = await getCroppedImg(imageSrc, croppedAreaPixels);
       
       const cloudName = "dpfz1gq4y"; 
-      const uploadPreset = "ml_default"; 
+      const uploadPreset = "college_app"; // Updated Preset name match kar lena
 
       const data = new FormData();
       data.append("file", croppedImageBlob);
@@ -146,6 +146,7 @@ const StudentProfile = () => {
       <div className="profile-wrapper">
         <div className="profile-cover">
             <button className="back-btn-float" onClick={() => navigate('/homepage')}><FaArrowLeft /> Home</button>
+            
             <div className="profile-pic-container">
                 <img src={photoURL} alt="Profile" className="profile-pic" />
                 <label htmlFor="fileInput" className="cam-icon"><FaCamera /></label>
@@ -168,7 +169,9 @@ const StudentProfile = () => {
                     </>
                 )}
             </div>
+
             <hr className="divider" />
+
             <div className="details-grid">
                 <div className="detail-item"><div className="icon-badge purple"><FaGraduationCap /></div><div><label>Class</label><h4>{userData.department} ({userData.year})</h4></div></div>
                 <div className="detail-item"><div className="icon-badge green"><FaIdBadge /></div><div><label>Student ID</label><h4>{userData.studentId}</h4></div></div>
@@ -227,7 +230,11 @@ const StudentProfile = () => {
                 <div className="crop-controls">
                     <div className="zoom-slider">
                         <label>Zoom</label>
-                        <input type="range" value={zoom} min={1} max={3} step={0.1} onChange={(e) => setZoom(e.target.value)} />
+                        <input 
+                            type="range" 
+                            value={zoom} min={1} max={3} step={0.1} 
+                            onChange={(e) => setZoom(e.target.value)} 
+                        />
                     </div>
                     <div className="crop-actions">
                         <button className="cancel-btn" onClick={() => {setIsCropping(false); setImageSrc(null);}}>Cancel</button>
@@ -244,50 +251,3 @@ const StudentProfile = () => {
 };
 
 export default StudentProfile;
-
-// 👇 UTILS FUNCTION (Jugaad: Inside File)
-const createImage = (url) =>
-  new Promise((resolve, reject) => {
-    const image = new Image();
-    image.addEventListener("load", () => resolve(image));
-    image.addEventListener("error", (error) => reject(error));
-    image.setAttribute("crossOrigin", "anonymous"); 
-    image.src = url;
-  });
-
-function getRadianAngle(degreeValue) {
-  return (degreeValue * Math.PI) / 180;
-}
-
-function rotateSize(width, height, rotation) {
-  const rotRad = getRadianAngle(rotation);
-  return {
-    width: Math.abs(Math.cos(rotRad) * width) + Math.abs(Math.sin(rotRad) * height),
-    height: Math.abs(Math.sin(rotRad) * width) + Math.abs(Math.cos(rotRad) * height),
-  };
-}
-
-async function getCroppedImg(imageSrc, pixelCrop, rotation = 0, flip = { horizontal: false, vertical: false }) {
-  const image = await createImage(imageSrc);
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return null;
-  const rotRad = getRadianAngle(rotation);
-  const { width: bBoxWidth, height: bBoxHeight } = rotateSize(image.width, image.height, rotation);
-  canvas.width = bBoxWidth; canvas.height = bBoxHeight;
-  ctx.translate(bBoxWidth / 2, bBoxHeight / 2);
-  ctx.rotate(rotRad);
-  ctx.scale(flip.horizontal ? -1 : 1, flip.vertical ? -1 : 1);
-  ctx.translate(-image.width / 2, -image.height / 2);
-  ctx.drawImage(image, 0, 0);
-  const data = ctx.getImageData(pixelCrop.x, pixelCrop.y, pixelCrop.width, pixelCrop.height);
-  canvas.width = pixelCrop.width; canvas.height = pixelCrop.height;
-  ctx.putImageData(data, 0, 0);
-  return new Promise((resolve) => {
-    canvas.toBlob((blob) => {
-      if (!blob) return;
-      blob.name = "cropped.jpeg";
-      resolve(blob);
-    }, "image/jpeg");
-  });
-}

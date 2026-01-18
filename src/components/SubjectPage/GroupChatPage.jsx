@@ -3,163 +3,167 @@ import { useParams, useNavigate } from "react-router-dom";
 import "./GroupChatPage.css";
 import { 
   FaArrowLeft, FaPaperPlane, FaPaperclip, FaTrash, 
-  FaSmile, FaFilePdf, FaFileAlt, FaVideo, FaDownload, FaTimes 
+  FaSmile, FaFilePdf, FaFileAlt, FaVideo, FaDownload, FaTimes, FaEllipsisV, FaPen
 } from "react-icons/fa";
 import EmojiPicker from "emoji-picker-react";
-
-import { db } from "../../firebase"; 
+import { db, auth } from "../../firebase"; 
 import { 
-  collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, deleteDoc, doc 
+  collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, deleteDoc, doc, where, updateDoc 
 } from "firebase/firestore";
 
 const GroupChatPage = ({ isAdmin = false }) => {
   const { subjectName } = useParams();
   const navigate = useNavigate();
+  
+  // 🔥 FIX: Scroll Ref ke liye
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
+  const chatContainerRef = useRef(null); // Container Ref
 
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   
-  // 👇 NEW STATES FOR PREVIEW
-  const [selectedFile, setSelectedFile] = useState(null); // File jo select hui
-  const [previewUrl, setPreviewUrl] = useState(null);     // Image preview ke liye
-  const [uploading, setUploading] = useState(false);      // Loading state
+  // File Upload States
+  const [selectedFile, setSelectedFile] = useState(null); 
+  const [previewUrl, setPreviewUrl] = useState(null);     
+  const [uploading, setUploading] = useState(false);      
+
+  // Menu States
+  const [menuVisible, setMenuVisible] = useState(null);
+  const [editingMsg, setEditingMsg] = useState(null);
+  const longPressTimer = useRef(null);
 
   const storedName = localStorage.getItem("userName");
+  const user = auth.currentUser;
   const currentUser = isAdmin ? "Admin (Teacher)" : (storedName || "Student");
+  const currentUid = user?.uid;
+  const userPhoto = user?.photoURL || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
-  // 👇 SETTINGS
   const CLOUD_NAME = "dpfz1gq4y"; 
   const UPLOAD_PRESET = "college_app"; 
 
+  // --- 1. FETCH MESSAGES (Realtime) ---
   useEffect(() => {
     if (!subjectName) return;
-    const q = query(collection(db, "subjects", subjectName, "messages"), orderBy("createdAt", "asc"));
+
+    // 🔥 Query Update
+    const q = query(
+        collection(db, "messages"), 
+        where("room", "==", subjectName),
+        orderBy("createdAt", "asc")
+    );
+
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      setMessages(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      const liveMessages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setMessages(liveMessages);
     });
+
     return () => unsubscribe();
   }, [subjectName]);
 
+  // 🔥 FIX: Auto Scroll whenever messages change
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages]);
 
-  // --- 1. FILE SELECT KARNA (Upload nahi, sirf Preview) ---
-  const handleFileSelect = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    // State mein file save karo
-    setSelectedFile(file);
-
-    // Agar Image hai to Preview banao
-    if (file.type.startsWith("image/")) {
-      setPreviewUrl(URL.createObjectURL(file));
-    } else {
-      setPreviewUrl(null); // PDF/Video ka preview nahi, sirf icon dikhayenge
-    }
-  };
-
-  // --- 2. SELECTED FILE KO HATANA (Cancel) ---
-  const clearSelection = () => {
-    setSelectedFile(null);
-    setPreviewUrl(null);
-    if (fileInputRef.current) fileInputRef.current.value = ""; // Input reset
-  };
-
-  // --- 3. FINAL SEND BUTTON LOGIC 🚀 ---
+  // --- 2. SEND MESSAGE ---
   const handleSend = async () => {
-    // Case A: Agar File Select hui hai -> Pehle Upload karo
-    if (selectedFile) {
-      await uploadAndSendFile();
-      return;
-    }
-
-    // Case B: Sirf Text hai -> Direct bhej do
+    if (selectedFile) { await uploadAndSendFile(); return; }
     if (input.trim()) {
-      await sendMessageToDB(input, "text");
+      if (editingMsg) {
+        await updateDoc(doc(db, "messages", editingMsg.id), { text: input });
+        setEditingMsg(null);
+      } else {
+        await sendMessageToDB(input, "text");
+      }
       setInput("");
       setShowEmojiPicker(false);
     }
   };
 
-  // --- 4. UPLOAD LOGIC (Send dabane par chalega) ---
-  const uploadAndSendFile = async () => {
-    if (!selectedFile) return;
-    setUploading(true);
-
-    const formData = new FormData();
-    formData.append("file", selectedFile);
-    formData.append("upload_preset", UPLOAD_PRESET); 
-    formData.append("cloud_name", CLOUD_NAME);
-    
-    // PDF vs Image logic
-    let resourceType = "raw"; 
-    if (selectedFile.type.startsWith("image/")) resourceType = "image";
-    else if (selectedFile.type.startsWith("video/")) resourceType = "video";
-
-    try {
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`, {
-        method: "POST",
-        body: formData,
-      });
-      const data = await res.json();
-      
-      if (data.secure_url) {
-        // DB Type determine karo
-        let msgType = "file";
-        if (resourceType === "image") msgType = "image";
-        else if (resourceType === "video") msgType = "video";
-
-        await sendMessageToDB(data.secure_url, msgType, selectedFile.name);
-        clearSelection(); // Upload hone ke baad preview hata do
-      } else {
-        alert("❌ Upload Failed!");
-      }
-    } catch (error) {
-      console.error("Upload Error:", error);
-      alert("❌ Internet Error.");
-    } finally {
-      setUploading(false);
-    }
-  };
-
   const sendMessageToDB = async (content, type, fileName = "") => {
     try {
-      await addDoc(collection(db, "subjects", subjectName, "messages"), {
+      await addDoc(collection(db, "messages"), { 
         text: content,
         fileName: fileName,
         sender: currentUser,
+        uid: currentUid, 
+        photo: userPhoto,
         role: isAdmin ? "admin" : "student",
         type: type,
+        room: subjectName, 
         createdAt: serverTimestamp(),
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       });
+      // Scroll immediately after send trigger
+      setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "auto" }), 100);
     } catch (err) { console.error(err); }
   };
 
+  // --- 3. ACTIONS ---
   const handleDelete = async (msgId) => {
     if (window.confirm("Delete this message?")) {
-      await deleteDoc(doc(db, "subjects", subjectName, "messages", msgId));
+      await deleteDoc(doc(db, "messages", msgId)); 
+      setMenuVisible(null);
     }
   };
 
+  const handleEditInit = (msg) => {
+    setEditingMsg(msg);
+    setInput(msg.text);
+    setMenuVisible(null);
+    fileInputRef.current.focus();
+  };
+
+  // --- 4. RENDER CONTENT ---
   const renderMessageContent = (msg) => {
     if (msg.type === "image") return <img src={msg.text} alt="sent" className="chat-image" />;
-    else if (msg.type === "video") return <video src={msg.text} controls className="chat-video" />;
-    else if (msg.type === "file") {
-      const isPdf = msg.fileName && msg.fileName.toLowerCase().endsWith(".pdf");
-      return (
+    if (msg.type === "file") return (
         <a href={msg.text} target="_blank" rel="noopener noreferrer" className="chat-file-link">
-          <div className="file-icon">{isPdf ? <FaFilePdf color="#e74c3c"/> : <FaFileAlt color="#3498db"/>}</div>
+          <div className="file-icon"><FaFileAlt /></div>
           <div className="file-info"><span>{msg.fileName}</span><small>Download <FaDownload/></small></div>
         </a>
-      );
-    }
+    );
     return <span>{msg.text}</span>;
+  };
+
+  // --- 5. LONG PRESS (Mobile) ---
+  const handleTouchStart = (msgId) => {
+    longPressTimer.current = setTimeout(() => setMenuVisible(msgId), 800);
+  };
+  const handleTouchEnd = () => {
+    if (longPressTimer.current) clearTimeout(longPressTimer.current);
+  };
+
+  // --- FILE UPLOAD LOGIC (Optimized) ---
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        setSelectedFile(file);
+        if (file.type.startsWith("image/")) setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
+  const uploadAndSendFile = async () => {
+      if (!selectedFile) return;
+      setUploading(true);
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      formData.append("upload_preset", UPLOAD_PRESET); 
+      formData.append("cloud_name", CLOUD_NAME);
+      try {
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`, { method: "POST", body: formData });
+        const data = await res.json();
+        if (data.secure_url) {
+            let type = selectedFile.type.startsWith("image/") ? "image" : "file";
+            await sendMessageToDB(data.secure_url, type, selectedFile.name);
+            setSelectedFile(null); setPreviewUrl(null);
+        }
+      } catch (e) { alert("Upload Failed"); }
+      setUploading(false);
   };
 
   return (
@@ -168,72 +172,81 @@ const GroupChatPage = ({ isAdmin = false }) => {
         <button className="back-btn" onClick={() => navigate(-1)}><FaArrowLeft /></button>
         <div className="group-info">
           <div className="group-icon">{subjectName.charAt(0).toUpperCase()}</div>
-          <div className="group-details"><h3>{subjectName}</h3><p>● Live Classroom</p></div>
+          <div className="group-details"><h3>{subjectName}</h3><p>● Live</p></div>
         </div>
       </header>
 
-      <div className="chat-body" onClick={() => setShowEmojiPicker(false)}>
+      <div className="chat-body" ref={chatContainerRef} onClick={() => setMenuVisible(null)}>
         {messages.map((msg) => {
-          const isMe = msg.sender === currentUser;
+          const isMe = msg.uid === currentUid;
+          const showMenu = menuVisible === msg.id;
+          const canDelete = isAdmin || isMe;
+          const canEdit = isMe && msg.type === "text";
+
           return (
-            <div key={msg.id} className={`message-row ${isMe ? "my-message" : "other-message"}`}>
-              {!isMe && <span className="sender-name">{msg.sender}</span>}
-              <div className="message-bubble">
-                {renderMessageContent(msg)}
-                <div className="msg-meta"><span className="msg-time">{msg.time}</span></div>
+            <div 
+                key={msg.id} 
+                className={`message-row ${isMe ? "my-message" : "other-message"}`}
+                onTouchStart={() => handleTouchStart(msg.id)} 
+                onTouchEnd={handleTouchEnd}
+            >
+              {/* 🔥 Profile Pic Logic (Positioned via CSS) */}
+              {!isMe && (
+                  <div className="avatar-wrapper">
+                    <img src={msg.photo || "https://cdn-icons-png.flaticon.com/512/149/149071.png"} className="chat-avatar" alt="u" />
+                  </div>
+              )}
+
+              <div className="bubble-wrapper">
+                {/* Name inside Bubble logic handled in CSS/Structure */}
+                <div className="message-bubble">
+                    {!isMe && <div className="sender-name">{msg.sender}</div>}
+                    {renderMessageContent(msg)}
+                    <span className="msg-time">{msg.time}</span>
+                </div>
+
+                {/* 3 Dots Menu */}
+                {canDelete && (
+                    <div className="msg-options">
+                        <FaEllipsisV className="dots-icon" onClick={(e) => { e.stopPropagation(); setMenuVisible(msg.id); }} />
+                        {showMenu && (
+                            <div className="pop-up-menu">
+                                {canEdit && <div onClick={() => handleEditInit(msg)}><FaPen/> Edit</div>}
+                                <div onClick={() => handleDelete(msg.id)} className="delete-opt"><FaTrash/> Delete</div>
+                            </div>
+                        )}
+                    </div>
+                )}
               </div>
-              {(isMe || isAdmin) && <button className="delete-btn" onClick={() => handleDelete(msg.id)}><FaTrash /></button>}
             </div>
           );
         })}
+        {/* 🔥 Dummy Div for Scroll */}
         <div ref={messagesEndRef} />
       </div>
 
-      {showEmojiPicker && (
-        <div className="emoji-picker-container">
-          <EmojiPicker onEmojiClick={(e) => setInput(prev => prev + e.emoji)} height={350} width="100%" />
-        </div>
-      )}
-
-      {/* 👇 PREVIEW SECTION (Jab file select hogi tab dikhega) */}
-      {selectedFile && (
-        <div className="file-preview-box">
-          <div className="preview-content">
-            {selectedFile.type.startsWith("image/") ? (
-              <img src={previewUrl} alt="Preview" className="preview-img" />
-            ) : (
-              <div className="preview-doc">
-                <FaFileAlt size={30} color="#555" />
-                <span>{selectedFile.name}</span>
-              </div>
-            )}
-          </div>
-          <button className="cancel-preview-btn" onClick={clearSelection}>
-            <FaTimes />
-          </button>
-        </div>
-      )}
-
-      {uploading && <div className="upload-loader">🚀 Sending File...</div>}
-
       <div className="chat-footer">
-        <button className="icon-btn" onClick={(e) => { e.stopPropagation(); setShowEmojiPicker(!showEmojiPicker); }}>
-          <FaSmile />
-        </button>
-        
-        <input type="file" ref={fileInputRef} style={{display: 'none'}} onChange={handleFileSelect} accept="image/*,video/*,.pdf,.doc,.docx" />
+        <button className="icon-btn" onClick={() => setShowEmojiPicker(!showEmojiPicker)}><FaSmile /></button>
+        <input type="file" ref={fileInputRef} style={{display:'none'}} onChange={handleFileSelect} />
         <button className="icon-btn" onClick={() => fileInputRef.current.click()}><FaPaperclip /></button>
+        
+        {editingMsg && <span className="editing-badge">Editing... <FaTimes onClick={()=>{setEditingMsg(null); setInput("")}}/></span>}
 
-        <input
-          type="text" 
-          placeholder={selectedFile ? `File: ${selectedFile.name}` : "Type a message..."} 
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          disabled={!!selectedFile} // Agar file select hai to text mat likhne do (WhatsApp style)
-          onKeyPress={(e) => e.key === "Enter" && handleSend()}
+        <input 
+            value={input} onChange={e => setInput(e.target.value)} 
+            placeholder={selectedFile ? "File selected..." : "Type a message..."} 
+            onKeyPress={e => e.key === 'Enter' && handleSend()}
         />
         <button className="send-btn" onClick={handleSend}><FaPaperPlane /></button>
       </div>
+      
+      {selectedFile && (
+         <div className="file-preview-box">
+            <span>{selectedFile.name}</span>
+            <button onClick={()=>setSelectedFile(null)}>Cancel</button>
+         </div>
+      )}
+      {showEmojiPicker && <div className="emoji-picker-container"><EmojiPicker onEmojiClick={(e)=>setInput(prev=>prev+e.emoji)}/></div>}
     </div>
   );
 };

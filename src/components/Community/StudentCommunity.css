@@ -1,76 +1,80 @@
-/* Page Background */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+
+/* --- MAIN BACKGROUND --- */
 .stu-comm-container {
-  min-height: 90vh; /* Navbar hata ke */
+  min-height: 100vh;
   padding: 40px 20px;
-  background-color: #f4f7f6;
-  font-family: 'Segoe UI', sans-serif;
-  text-align: center;
+  font-family: 'Outfit', sans-serif;
+  
+  /* 🔥 Premium Aurora Gradient */
+  background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+  background-attachment: fixed;
+  color: #1e293b;
 }
 
-/* Header */
-.stu-comm-header { margin-bottom: 50px; }
-.stu-comm-header h1 { color: #2d3436; font-size: 2.5rem; margin-bottom: 10px; font-weight: 800; }
-.stu-comm-header p { color: #636e72; font-size: 1.1rem; }
+/* --- HEADER --- */
+.stu-comm-header { 
+    margin-bottom: 60px; text-align: center; 
+}
+.stu-comm-header h1 { 
+    color: #1e293b; font-size: 2.2rem; margin-bottom: 8px; font-weight: 800; 
+    letter-spacing: -1px; text-shadow: 0 2px 10px rgba(255,255,255,0.3);
+}
+.stu-comm-header p { 
+    color: #475569; font-size: 1rem; font-weight: 500;
+}
 
-/* Grid */
+/* --- iOS APP GRID --- */
 .stu-comm-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 30px;
-  max-width: 1100px;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); /* Icons automatically fit */
+  gap: 40px 20px; /* Vertical gap jyada text ke liye */
+  max-width: 600px; /* Center align rakhne ke liye */
   margin: 0 auto;
+  justify-items: center;
 }
 
-/* Card Design */
-.hub-card {
-  background: white;
-  border-radius: 20px;
-  padding: 30px;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-  cursor: pointer;
-  transition: all 0.4s ease;
-  border: 1px solid rgba(0,0,0,0.02);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
+/* --- APP ICON ITEM --- */
+.app-item {
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    cursor: pointer; transition: 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+    width: 90px;
 }
 
-.hub-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
-
-/* Decorative Top Bar */
-.hub-bg-accent {
-  position: absolute; top: 0; left: 0; width: 100%; height: 6px;
+.app-item:hover .app-squircle { 
+    transform: scale(1.1); 
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2); 
+}
+.app-item:active .app-squircle { 
+    transform: scale(0.95); opacity: 0.8; 
 }
 
-/* Icon */
-.hub-icon-box {
-  width: 70px; height: 70px; border-radius: 50%;
-  display: flex; justify-content: center; align-items: center;
-  font-size: 1.8rem; color: white; margin-bottom: 20px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+/* --- THE SQUIRCLE (Apple Icon Shape) --- */
+.app-squircle {
+    width: 75px; height: 75px;
+    border-radius: 20px; /* iOS Icon Radius */
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem; color: white;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    background-size: 150%;
+    position: relative;
+    border: 1px solid rgba(255,255,255,0.3);
 }
 
-/* Text */
-.hub-content h3 { margin: 0 0 5px 0; font-size: 1.4rem; color: #2d3436; }
-.hub-badge {
-  display: inline-block; background: #dfe6e9; color: #636e72;
-  padding: 4px 12px; border-radius: 15px; font-size: 0.8rem;
-  margin-bottom: 15px; font-weight: 600;
-}
-.hub-content p { color: #b2bec3; font-size: 0.95rem; margin-bottom: 25px; }
-
-/* Button */
-.join-hub-btn {
-  background: #2d3436; color: white; border: none;
-  padding: 10px 25px; border-radius: 30px;
-  font-weight: 600; display: flex; align-items: center; gap: 8px;
-  transition: 0.3s;
+/* --- TEXT LABEL --- */
+.app-label {
+    font-size: 0.85rem; font-weight: 600; color: #334155;
+    text-align: center; line-height: 1.2;
+    text-shadow: 0 1px 1px rgba(255,255,255,0.5);
+    max-width: 100px;
 }
 
-.hub-card:hover .join-hub-btn {
-  background: linear-gradient(90deg, #11998e 0%, #38ef7d 100%); /* Cool Green Hover */
-  box-shadow: 0 5px 15px rgba(56, 239, 125, 0.4);
+/* --- NOTIFICATION BADGE --- */
+.notif-badge {
+    position: absolute; top: -5px; right: -5px;
+    background: #ff3b30; color: white; border: 2px solid white;
+    font-size: 0.7rem; font-weight: bold;
+    width: 22px; height: 22px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }

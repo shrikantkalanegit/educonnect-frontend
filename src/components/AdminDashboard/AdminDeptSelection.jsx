@@ -3,27 +3,32 @@ import { useNavigate } from "react-router-dom";
 import { db, auth } from "../../firebase"; 
 import { signOut, onAuthStateChanged } from "firebase/auth";
 import { collection, addDoc, getDocs, getDoc, doc, serverTimestamp, query, orderBy, Timestamp } from "firebase/firestore";
-import { FaPlus, FaArrowRight, FaBullhorn, FaUniversity, FaUserFriends, FaSignOutAlt, FaUserCircle, FaPaperPlane, FaTimes } from "react-icons/fa";
+import { FaPlus, FaArrowRight, FaBullhorn, FaSignOutAlt, FaUserCircle, FaPaperPlane, FaTimes } from "react-icons/fa";
 import "./AdminDeptSelection.css"; 
 
 const AdminDeptSelection = () => {
   const navigate = useNavigate();
   const [departments, setDepartments] = useState([]);
-  const [showModal, setShowModal] = useState(false); // Dept Create Modal
-  const [showBroadcastModal, setShowBroadcastModal] = useState(false); // Global Broadcast Modal
+  const [showModal, setShowModal] = useState(false);
+  const [showBroadcastModal, setShowBroadcastModal] = useState(false);
   
   const [newDeptName, setNewDeptName] = useState("");
   const [loading, setLoading] = useState(true);
-
-  // Admin Data State
   const [adminData, setAdminData] = useState({ name: "Admin", photo: "" });
   const [noticeMsg, setNoticeMsg] = useState("");
+  const [recentDept, setRecentDept] = useState(null);
+
+  // Gradient Classes for Random Assignment
+  const gradClasses = ["grad-1", "grad-2", "grad-3", "grad-4", "grad-5"];
 
   useEffect(() => {
-    // 1. Fetch Admin Profile & Depts
+    // 1. Check Recent
+    const lastDept = localStorage.getItem("currentDept");
+    if(lastDept) setRecentDept(lastDept);
+
+    // 2. Auth Check
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
         if(user) {
-            // Admin Info Fetch
             const docSnap = await getDoc(doc(db, "admins", user.uid));
             if(docSnap.exists()) {
                 setAdminData({ 
@@ -67,130 +72,141 @@ const AdminDeptSelection = () => {
     navigate("/admin-dashboard");
   };
 
-  // 🔥 GLOBAL BROADCAST LOGIC
   const handleGlobalBroadcast = async () => {
     if(!noticeMsg.trim()) return;
     try {
         await addDoc(collection(db, "notices"), {
             message: noticeMsg,
             targetYear: "All Years",
-            department: "Global", // 🌍 KEY MAGIC WORD
+            department: "Global",
             durationLabel: "24 Hours",
             createdAt: serverTimestamp(),
             expiresAt: Timestamp.fromDate(new Date(Date.now() + 24 * 60 * 60 * 1000)),
             sender: `${adminData.name} (HQ)`,
             senderPic: adminData.photo
         });
-        alert("Global Notice Sent to ALL Departments! 🌍");
-        setNoticeMsg("");
-        setShowBroadcastModal(false);
+        alert("Global Notice Sent! 🌍");
+        setNoticeMsg(""); setShowBroadcastModal(false);
     } catch (e) { alert("Failed to send."); }
   };
 
   const handleLogout = async () => {
-    if(window.confirm("Logout from Super Admin?")) {
-        await signOut(auth);
-        localStorage.clear();
-        navigate("/", { replace: true });
+    if(window.confirm("Logout?")) {
+        await signOut(auth); localStorage.clear(); navigate("/", { replace: true });
     }
   };
 
   return (
     <div className="super-admin-wrapper">
       
+      {/* GLASS NAVBAR */}
       <nav className="super-navbar">
         <div className="brand-box">
             <div className="brand-logo">E</div>
-            <h2>EduConnect <span className="admin-tag">SUPER ADMIN</span></h2>
+            <h2>EduConnect</h2>
         </div>
         
-        <div style={{display:'flex', gap:'15px', alignItems:'center'}}>
-            {/* 🔥 Admin Profile Pic Here */}
-            <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
-                {adminData.photo ? 
-                    <img src={adminData.photo} alt="Adm" style={{width:'40px', height:'40px', borderRadius:'50%', objectFit:'cover', border:'2px solid #2563eb'}}/> 
-                    : <FaUserCircle style={{fontSize:'2rem', color:'#cbd5e1'}}/>
-                }
-                <span style={{fontWeight:'bold', color:'#334155'}}>{adminData.name}</span>
-            </div>
-
-            <button className="logout-btn-ghost" onClick={handleLogout}>
-                <FaSignOutAlt /> Logout
-            </button>
+        <div className="profile-pill" onClick={handleLogout}>
+            {adminData.photo ? 
+                <img src={adminData.photo} alt="Adm" className="profile-img"/> 
+                : <FaUserCircle style={{fontSize:'1.5rem'}}/>
+            }
+            <span className="profile-name">{adminData.name}</span>
+            <FaSignOutAlt style={{fontSize:'0.8rem', opacity:0.7}}/>
         </div>
       </nav>
 
       <div className="content-container">
+        
+        {/* HEADER */}
         <header className="selection-header">
             <div>
-                <h1>Select Faculty 🎓</h1>
-                <p>Manage specific departments or control the whole campus.</p>
+                <h1>Department</h1>
+                <p>Manage your campus faculties.</p>
             </div>
-            {/* 🔥 GLOBAL BROADCAST BUTTON */}
             <button className="global-broadcast-btn" onClick={() => setShowBroadcastModal(true)}>
-                <FaBullhorn /> Global Broadcast
+                <FaBullhorn /> Broadcast
             </button>
         </header>
 
-        {loading ? <p className="loading-txt">Loading Campus Data...</p> : (
-            <div className="dept-grid">
-                <div className="dept-card create-card" onClick={() => setShowModal(true)}>
-                    <div className="icon-circle add-icon"><FaPlus /></div>
-                    <h3>Add Department</h3>
-                    <p>Expand your campus</p>
-                </div>
-
-                {departments.map((dept) => (
-                    <div key={dept.id} className="dept-card glass-card" onClick={() => handleSelectDept(dept.name)}>
-                        <div className="card-top">
-                            <FaUniversity className="dept-icon"/>
-                            <span className="count-badge"><FaUserFriends/> {dept.studentCount || 0}</span>
-                        </div>
-                        <h3>{dept.name}</h3>
-                        <div className="card-footer">
-                            <span>Manage Portal</span>
-                            <FaArrowRight />
+        {loading ? <p className="loading-txt">Loading...</p> : (
+            <>
+                {/* 1. WIDGET SECTION (Recent Used) */}
+                {recentDept && (
+                    <div className="widget-section">
+                        <div className="widget-label">Suggested</div>
+                        <div className="recent-widget" onClick={() => handleSelectDept(recentDept)}>
+                            <div className="rw-info">
+                                <h2>{recentDept}</h2>
+                                <p>Continue where you left off</p>
+                            </div>
+                            <div className="rw-arrow"><FaArrowRight /></div>
                         </div>
                     </div>
-                ))}
-            </div>
+                )}
+
+                {/* 2. APP GRID (All Depts) */}
+                <div className="widget-label">All Faculties</div>
+                <div className="ios-grid">
+                    
+                    {/* Create App Icon */}
+                    <div className="app-item" onClick={() => setShowModal(true)}>
+                        <div className="app-icon-box add-app-box">
+                            <FaPlus className="add-icon"/>
+                        </div>
+                        <span className="app-label">New Faculty</span>
+                    </div>
+
+                    {/* Department App Icons */}
+                    {departments.map((dept, index) => {
+                        // Random Gradient Assign
+                        const gradClass = gradClasses[index % gradClasses.length];
+                        const initial = dept.name.charAt(0);
+
+                        return (
+                            <div key={dept.id} className="app-item" onClick={() => handleSelectDept(dept.name)}>
+                                <div className={`app-icon-box ${gradClass}`}>
+                                    <span className="dept-initial">{initial}</span>
+                                    {dept.studentCount > 0 && <span className="student-badge">{dept.studentCount}</span>}
+                                </div>
+                                <span className="app-label">{dept.name}</span>
+                            </div>
+                        );
+                    })}
+                </div>
+            </>
         )}
       </div>
 
-      {/* CREATE DEPT MODAL */}
+      {/* CREATE MODAL */}
       {showModal && (
         <div className="modal-overlay">
             <div className="modal-box">
-                <h3>Create New Faculty</h3>
-                <input type="text" placeholder="Ex: BCA, CIVIL, ARTS" value={newDeptName} onChange={(e) => setNewDeptName(e.target.value)} autoFocus />
+                <h3>New Faculty</h3>
+                <input type="text" placeholder="Department Name" value={newDeptName} onChange={(e) => setNewDeptName(e.target.value)} autoFocus />
                 <div className="modal-actions">
                     <button className="cancel-btn" onClick={() => setShowModal(false)}>Cancel</button>
-                    <button className="create-btn" onClick={handleCreateDept}>Create Now</button>
+                    <button className="create-btn" onClick={handleCreateDept}>Add</button>
                 </div>
             </div>
         </div>
       )}
 
-      {/* 🔥 GLOBAL BROADCAST MODAL */}
+      {/* BROADCAST MODAL */}
       {showBroadcastModal && (
         <div className="modal-overlay">
-            <div className="modal-box" style={{maxWidth:'500px'}}>
-                <div className="v-modal-head" style={{display:'flex', justifyContent:'space-between', marginBottom:'15px'}}>
-                    <h3>🌍 Global Campus Announcement</h3>
+            <div className="modal-box">
+                <div style={{display:'flex', justifyContent:'space-between', marginBottom:'15px'}}>
+                    <h3>Global Notice</h3>
                     <FaTimes style={{cursor:'pointer'}} onClick={()=>setShowBroadcastModal(false)}/>
                 </div>
-                <p style={{color:'#666', fontSize:'0.9rem', marginBottom:'15px'}}>
-                    This notice will be visible to <b>ALL Students & Faculty</b> across every department.
-                </p>
                 <textarea 
-                    placeholder="Type official announcement..." 
-                    value={noticeMsg} 
-                    onChange={(e) => setNoticeMsg(e.target.value)} 
-                    rows="5"
-                    style={{width:'100%', padding:'10px', borderRadius:'8px', border:'1px solid #ccc', marginBottom:'15px'}}
+                    placeholder="Announcement for everyone..." 
+                    value={noticeMsg} onChange={(e) => setNoticeMsg(e.target.value)} rows="5"
+                    style={{width:'100%', padding:'10px', borderRadius:'10px', marginBottom:'15px'}}
                 />
                 <button className="create-btn" onClick={handleGlobalBroadcast} style={{width:'100%', display:'flex', justifyContent:'center', gap:'10px'}}>
-                    <FaPaperPlane /> Broadcast Globally
+                    <FaPaperPlane /> Send
                 </button>
             </div>
         </div>

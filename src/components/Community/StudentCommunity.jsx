@@ -1,61 +1,74 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../Navbar/Navbar"; 
-import { FaCircleNotch } from "react-icons/fa";
+import { FaUsers, FaUniversity, FaHashtag } from "react-icons/fa";
+import { auth, db } from "../../firebase";
+import { doc, getDoc } from "firebase/firestore";
+import "./StudentCommunity.css"; 
 
 const StudentCommunity = () => {
   const navigate = useNavigate();
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 1. Student ka Year pata karo
-    const rawYear = localStorage.getItem("userYear") || "1st Year"; 
-    
-    // 👇 MAGIC FIX: "1st Year" ko "1st-year" mein badalna
-    // Replace space with hyphen and make lowercase
-    const formattedYear = rawYear.replace(/ /g, "-").toLowerCase();
+    const fetchUser = async () => {
+      const user = auth.currentUser;
+      if (user) {
+        const snap = await getDoc(doc(db, "users", user.uid));
+        if (snap.exists()) setUserData(snap.data());
+      }
+      setLoading(false);
+    };
+    fetchUser();
+  }, []);
 
-    // 2. Ab ID bilkul Admin jaisi banegi: "1st-year-community"
-    const communityId = `${formattedYear}-community`; 
+  if (loading) return <div style={{textAlign:'center', marginTop:'50px', color:'#64748b'}}>Loading Apps...</div>;
+  if (!userData) return <div style={{textAlign:'center', marginTop:'50px'}}>Please Login first.</div>;
 
-    // 3. Redirect karo
-    const timer = setTimeout(() => {
-     navigate(`/subject/${communityId}`, { replace: true });
-    }, 1500);
-    return () => clearTimeout(timer);
-  }, [navigate]);
+  // Dynamic IDs
+  const classHubID = `${userData.department}-${userData.year}-Hub`; 
+  const deptHubID = `${userData.department}-General-Hub`;           
 
   return (
     <>
       <Navbar />
-      <div style={{
-        height: '80vh', 
-        display: 'flex', 
-        flexDirection: 'column', 
-        justifyContent: 'center', 
-        alignItems: 'center',
-        fontFamily: 'Segoe UI, sans-serif'
-      }}>
+      <div className="stu-comm-container">
         
-        {/* Loading Animation */}
-        <div style={{
-          fontSize: '3rem', 
-          color: '#9c27b0', 
-          animation: 'spin 1s linear infinite'
-        }}>
-          <FaCircleNotch />
+        <header className="stu-comm-header">
+            <h1>Communities 🌍</h1>
+            <p>Join the discussion channels.</p>
+        </header>
+
+        <div className="stu-comm-grid">
+            
+            {/* APP 1: CLASS BATCH */}
+            <div className="app-item" onClick={() => navigate(`/subject/${classHubID}`)}>
+                <div className="app-squircle" style={{background: 'linear-gradient(135deg, #c471f5 0%, #fa71cd 100%)'}}>
+                    <FaUsers />
+                    {/* Fake Notification Badge */}
+                    <div className="notif-badge">3</div>
+                </div>
+                <span className="app-label">{userData.year} Batch</span>
+            </div>
+
+            {/* APP 2: DEPARTMENT HUB */}
+            <div className="app-item" onClick={() => navigate(`/subject/${deptHubID}`)}>
+                <div className="app-squircle" style={{background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'}}>
+                    <FaUniversity />
+                </div>
+                <span className="app-label">{userData.department} HQ</span>
+            </div>
+
+            {/* APP 3: TRENDING (Optional) */}
+            <div className="app-item" onClick={() => alert("Global Channel Coming Soon!")}>
+                <div className="app-squircle" style={{background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)'}}>
+                    <FaHashtag />
+                </div>
+                <span className="app-label">Trending</span>
+            </div>
+
         </div>
-
-        <h2 style={{color: '#333', marginTop: '20px'}}>Connecting to your Community...</h2>
-        <p style={{color: '#777'}}>Matching you with your batchmates.</p>
-
-        <style>
-          {`
-            @keyframes spin {
-              0% { transform: rotate(0deg); }
-              100% { transform: rotate(360deg); }
-            }
-          `}
-        </style>
       </div>
     </>
   );

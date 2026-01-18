@@ -1,105 +1,173 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap');
 
-/* GLOBAL WRAPPER */
+/* --- GLOBAL WRAPPER (Apple Wallpaper Vibe) --- */
 .super-admin-wrapper {
     min-height: 100vh;
-    background: #f1f5f9; /* Clean Light Grey */
+    background: #f5f5f7; /* Apple Light Gray */
     font-family: 'Outfit', sans-serif;
+    color: #1d1d1f;
+    padding-bottom: 50px;
+    background-image: 
+        radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+        radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
+        radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+    background-size: 100% 100%; /* Dark Premium Vibe */
+    color: white; /* Text White for Dark BG */
 }
 
-/* NAVBAR */
+/* --- NAVBAR (Glassy) --- */
 .super-navbar {
-    background: white;
     padding: 15px 40px;
     display: flex; justify-content: space-between; align-items: center;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    background: rgba(20, 20, 20, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     position: sticky; top: 0; z-index: 100;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
 .brand-box { display: flex; align-items: center; gap: 12px; }
 .brand-logo {
-    width: 40px; height: 40px; background: #2563eb; color: white;
-    border-radius: 8px; display: flex; justify-content: center; align-items: center;
-    font-weight: 800; font-size: 1.5rem;
+    width: 38px; height: 38px; background: white; color: black;
+    border-radius: 10px; display: flex; justify-content: center; align-items: center;
+    font-weight: 800; font-size: 1.4rem;
 }
-.brand-box h2 { font-size: 1.4rem; color: #1e293b; font-weight: 700; margin: 0; }
-.admin-tag { background: #1e293b; color: #fbbf24; font-size: 0.6rem; padding: 4px 8px; border-radius: 4px; vertical-align: middle; margin-left: 8px; }
-
-.logout-btn-ghost {
-    background: transparent; border: 1px solid #cbd5e1; color: #64748b;
-    padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600;
-    display: flex; align-items: center; gap: 8px; transition: 0.2s;
+.brand-box h2 { font-size: 1.3rem; color: white; font-weight: 600; margin: 0; letter-spacing: -0.5px; }
+.admin-tag { 
+    background: rgba(255,255,255,0.2); color: white; font-size: 0.6rem; 
+    padding: 3px 8px; border-radius: 12px; margin-left: 10px; font-weight: 500; letter-spacing: 1px;
 }
-.logout-btn-ghost:hover { border-color: #ef4444; color: #ef4444; }
 
-/* CONTENT AREA */
-.content-container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+/* Profile Pill */
+.profile-pill {
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(255,255,255,0.1); padding: 5px 15px 5px 5px;
+    border-radius: 30px; border: 1px solid rgba(255,255,255,0.1);
+    transition: 0.3s; cursor: pointer;
+}
+.profile-pill:hover { background: rgba(255,255,255,0.2); }
+.profile-img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
+.profile-name { font-size: 0.9rem; font-weight: 500; }
+
+/* --- CONTENT AREA --- */
+.content-container { max-width: 1100px; margin: 0 auto; padding: 40px 20px; }
 
 .selection-header {
     display: flex; justify-content: space-between; align-items: flex-end;
-    margin-bottom: 50px;
+    margin-bottom: 40px;
 }
-.selection-header h1 { font-size: 2.2rem; color: #1e293b; margin: 0 0 10px 0; }
-.selection-header p { color: #64748b; font-size: 1.1rem; margin: 0; }
+.selection-header h1 { font-size: 2.5rem; margin: 0 0 5px 0; font-weight: 700; letter-spacing: -1px; }
+.selection-header p { color: rgba(255,255,255,0.6); font-size: 1.1rem; margin: 0; }
 
-/* GLOBAL BROADCAST BUTTON */
+/* Global Button (iOS Button Style) */
 .global-broadcast-btn {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    color: white; border: none; padding: 12px 25px; border-radius: 12px;
-    font-size: 1rem; font-weight: 700; cursor: pointer;
-    display: flex; align-items: center; gap: 10px;
-    box-shadow: 0 10px 20px rgba(245, 158, 11, 0.3); transition: 0.2s;
+    background: rgba(255,255,255,0.1);
+    color: white; border: 1px solid rgba(255,255,255,0.2);
+    padding: 10px 20px; border-radius: 20px;
+    font-size: 0.9rem; font-weight: 600; cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+    backdrop-filter: blur(10px); transition: 0.3s;
 }
-.global-broadcast-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(245, 158, 11, 0.4); }
+.global-broadcast-btn:hover { background: white; color: black; transform: scale(1.05); }
 
-/* GRID */
-.dept-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 30px; }
+/* --- APPLE APP GRID LAYOUT --- */
+.ios-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); /* Icon size */
+    gap: 40px 20px; /* Vertical Gap jyada for labels */
+    justify-items: center;
+}
 
-/* CARDS */
-.dept-card {
-    border-radius: 16px; padding: 25px; cursor: pointer;
-    transition: all 0.3s ease; display: flex; flex-direction: column; height: 180px;
+/* --- APP ICON (The Square Box) --- */
+.app-item {
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    cursor: pointer; transition: 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+.app-item:hover .app-icon-box { transform: scale(1.1); box-shadow: 0 15px 35px rgba(0,0,0,0.4); }
+.app-item:active .app-icon-box { transform: scale(0.95); filter: brightness(0.8); }
+
+.app-icon-box {
+    width: 110px; height: 110px;
+    border-radius: 26px; /* iOS Squircle Radius */
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
     position: relative;
+    border: 1px solid rgba(255,255,255,0.1);
+    background-size: cover;
+    transition: 0.3s;
 }
 
-/* CREATE CARD */
-.create-card {
-    border: 2px dashed #cbd5e1; background: transparent; align-items: center; justify-content: center; text-align: center;
-}
-.create-card:hover { border-color: #2563eb; background: rgba(37, 99, 235, 0.05); }
-.add-icon {
-    width: 50px; height: 50px; background: #e2e8f0; color: #64748b;
-    border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; margin-bottom: 10px; transition: 0.3s;
-}
-.create-card:hover .add-icon { background: #2563eb; color: white; }
-.create-card h3 { font-size: 1.1rem; color: #1e293b; margin: 0; }
-.create-card p { font-size: 0.85rem; color: #94a3b8; }
+/* Dynamic Gradients for Apps */
+.grad-1 { background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%); }
+.grad-2 { background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); }
+.grad-3 { background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); }
+.grad-4 { background: linear-gradient(135deg, #fccb90 0%, #d57eeb 100%); }
+.grad-5 { background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%); }
 
-/* DEPT CARDS (Glassy Blue) */
-.glass-card {
-    background: white; border: 1px solid #e2e8f0; box-shadow: 0 10px 30px rgba(0,0,0,0.03);
-    justify-content: space-between; overflow: hidden;
-}
-.glass-card:hover { transform: translateY(-8px); border-color: #2563eb; box-shadow: 0 20px 40px rgba(37, 99, 235, 0.15); }
-
-.card-top { display: flex; justify-content: space-between; align-items: center; }
-.dept-icon { font-size: 1.8rem; color: #2563eb; }
-.count-badge { background: #f1f5f9; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; color: #64748b; display: flex; gap: 5px; align-items: center; font-weight: 600; }
-
-.glass-card h3 { font-size: 1.5rem; color: #1e293b; margin: 0; font-weight: 700; }
-
-.card-footer {
-    border-top: 1px solid #f1f5f9; padding-top: 15px; margin-top: 10px;
-    display: flex; justify-content: space-between; align-items: center;
-    color: #2563eb; font-weight: 600; font-size: 0.9rem;
+.dept-initial { font-size: 2.5rem; font-weight: 800; color: white; text-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+.student-badge { 
+    position: absolute; top: 8px; right: 8px; 
+    background: rgba(0,0,0,0.4); color: white; 
+    font-size: 0.65rem; padding: 2px 6px; border-radius: 10px; 
+    backdrop-filter: blur(4px);
 }
 
-/* MODAL SAME AS BEFORE... */
-.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); display: flex; justify-content: center; align-items: center; z-index: 200; }
-.modal-box { background: white; padding: 30px; border-radius: 16px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
-.modal-box h3 { margin-bottom: 20px; color: #1e293b; }
-.modal-box input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1rem; margin-bottom: 20px; outline: none; text-transform: uppercase; }
-.modal-box input:focus { border-color: #2563eb; }
-.modal-actions { display: flex; gap: 10px; }
-.create-btn { flex: 1; padding: 12px; background: #2563eb; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-.cancel-btn { flex: 1; padding: 12px; background: #f1f5f9; color: #64748b; border: none; border-radius: 8px; cursor: pointer; }
+.app-label {
+    font-size: 0.9rem; font-weight: 500; color: white; 
+    text-align: center; width: 120px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+/* --- ADD BUTTON (Glass Style) --- */
+.add-app-box {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    border: 1px dashed rgba(255,255,255,0.3);
+    color: white;
+}
+.add-app-box:hover { background: rgba(255,255,255,0.25); border-style: solid; }
+.add-icon { font-size: 2rem; opacity: 0.8; }
+
+/* --- RECENT WIDGET (Top Large Card) --- */
+.widget-section { margin-bottom: 40px; }
+.widget-label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.5); margin-bottom: 15px; font-weight: 600; }
+
+.recent-widget {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(20px);
+    border-radius: 28px;
+    padding: 25px;
+    display: flex; align-items: center; justify-content: space-between;
+    border: 1px solid rgba(255,255,255,0.1);
+    cursor: pointer; transition: 0.3s;
+    max-width: 500px;
+}
+.recent-widget:hover { background: rgba(255,255,255,0.15); transform: scale(1.02); }
+
+.rw-info h2 { margin: 0; font-size: 1.8rem; }
+.rw-info p { margin: 5px 0 0; opacity: 0.7; }
+.rw-arrow { background: white; color: black; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+
+/* --- MODAL (Clean Dark Mode) --- */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6); backdrop-filter: blur(10px);
+    display: flex; justify-content: center; align-items: center; z-index: 200;
+}
+.modal-box {
+    background: #1c1c1e; color: white;
+    padding: 30px; border-radius: 24px;
+    width: 90%; max-width: 400px;
+    text-align: center;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+.modal-box input, .modal-box textarea {
+    background: #2c2c2e; border: none; color: white;
+}
+.create-btn { background: #0A84FF; } 
+.cancel-btn { background: #3a3a3c; color: white; }
+
+/* Loader */
+.loading-txt { text-align: center; margin-top: 50px; font-size: 1.2rem; opacity: 0.7; }

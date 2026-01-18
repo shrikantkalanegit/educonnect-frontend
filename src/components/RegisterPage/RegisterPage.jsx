@@ -8,9 +8,6 @@ import { doc, setDoc, collection, getDocs, query, orderBy, where, updateDoc } fr
 function RegisterPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  
-  // 🔥 New State to track fetching status
-  const [fetchingDepts, setFetchingDepts] = useState(true); 
   const [departmentList, setDepartmentList] = useState([]);
 
   const [formData, setFormData] = useState({
@@ -23,25 +20,13 @@ function RegisterPage() {
     confirmPassword: "",
   });
 
-  // 1. Fetch Departments
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
         const q = query(collection(db, "departments"), orderBy("name"));
         const querySnapshot = await getDocs(q);
-        
-        const depts = querySnapshot.docs.map(doc => doc.data().name);
-        setDepartmentList(depts);
-        
-        if (depts.length === 0) {
-            console.warn("No departments found in DB.");
-        }
-      } catch (error) { 
-        console.error("Error fetching departments:", error); 
-        // Agar permission error aaye to ye console mein dikhega
-      } finally {
-        setFetchingDepts(false); // 🔥 Loading khatam
-      }
+        setDepartmentList(querySnapshot.docs.map(doc => doc.data().name));
+      } catch (error) { console.error("Error:", error); }
     };
     fetchDepartments();
   }, []);
@@ -63,7 +48,6 @@ function RegisterPage() {
     try {
       setLoading(true);
 
-      // Check allowed list
       const q = query(
         collection(db, "allowed_students"), 
         where("studentId", "==", formData.studentId.toUpperCase()), 
@@ -73,19 +57,26 @@ function RegisterPage() {
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.empty) {
-        alert("⛔ ACCESS DENIED! \nAapka Student ID database mein nahi mila. \nKripya College Admin se contact karein.");
+        alert("⛔ ACCESS DENIED! \nAapka Student ID database mein nahi mila.");
         setLoading(false);
         return;
       }
 
       const allowedDoc = querySnapshot.docs[0];
+      
+      // Check Block Status
+      if (allowedDoc.data().isBlocked) {
+          alert("⛔ Your ID is BLOCKED by Admin. Contact College.");
+          setLoading(false);
+          return;
+      }
+
       if (allowedDoc.data().isRegistered) {
          alert("⚠️ Yeh Student ID pehle se register ho chuka hai! Login karein.");
          setLoading(false);
          return;
       }
 
-      // Create User
       const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
       const user = userCredential.user;
 
@@ -100,13 +91,15 @@ function RegisterPage() {
         createdAt: new Date()
       });
 
+      // 🔥 UPDATE: Allowed list mein bhi naya naam save karo
       await updateDoc(doc(db, "allowed_students", allowedDoc.id), {
         isRegistered: true,
-        registeredUid: user.uid
+        registeredUid: user.uid,
+        name: formData.fullName // 👈 Ye line add ki hai taki Admin panel me updated naam dikhe
       });
       
       setLoading(false);
-      alert("✅ Account Successfully Created!");
+      alert("✅ Account Successfully Created! Welcome to EduConnect.");
       navigate("/");
 
     } catch (error) {
@@ -136,17 +129,11 @@ function RegisterPage() {
             style={{textTransform: 'uppercase'}} 
           />
           
-          {/* 🔥 IMPROVED DEPARTMENT SELECT */}
           <select name="department" value={formData.department} onChange={handleChange} required className="register-dropdown">
             <option value="">-- Select Faculty --</option>
-            
-            {fetchingDepts ? (
-                <option disabled>Loading Departments...</option>
-            ) : departmentList.length > 0 ? (
+            {departmentList.length > 0 ? (
                 departmentList.map((dept, index) => (<option key={index} value={dept}>{dept}</option>))
-            ) : (
-                <option disabled>No Departments Found (Contact Admin)</option>
-            )}
+            ) : <option disabled>Loading...</option>}
           </select>
 
           <select name="year" value={formData.year} onChange={handleChange} required className="register-dropdown">
