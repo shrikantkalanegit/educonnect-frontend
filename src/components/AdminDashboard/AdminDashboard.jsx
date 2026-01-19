@@ -57,16 +57,14 @@ const AdminDashboard = () => {
     fetchStats();
   }, [currentDept]);
 
-  // 2. FETCH PROFILE (🔥 ERROR FIX HERE)
+  // 2. FETCH PROFILE
   useEffect(() => {
-    let unsubSnapshot = null; // Store listener reference
+    let unsubSnapshot = null; 
 
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       if (user) {
-        // Agar pehle se koi listener chal raha hai, to usse band karo
         if (unsubSnapshot) unsubSnapshot();
 
-        // Naya listener shuru karo
         unsubSnapshot = onSnapshot(doc(db, "admins", user.uid), (docSnap) => {
           if (docSnap.exists()) {
             setProfilePic(docSnap.data().photo || docSnap.data().profilePic);
@@ -76,7 +74,6 @@ const AdminDashboard = () => {
       }
     });
 
-    // Cleanup Function (Jab component hatega, sab band ho jayega)
     return () => {
       unsubscribeAuth();
       if (unsubSnapshot) unsubSnapshot();
@@ -180,7 +177,8 @@ const AdminDashboard = () => {
                 <span>Student Mng</span>
             </div>
 
-            <div className="app-icon-container" onClick={() => alert("ID Card Generator - Feature Coming Next!")}>
+           {/* ID Card Generator App */}
+            <div className="app-icon-container" onClick={() => navigate('/admin/id-cards')}>
                 <div className="app-squircle" style={{background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'}}>
                     <FaIdCard />
                 </div>
