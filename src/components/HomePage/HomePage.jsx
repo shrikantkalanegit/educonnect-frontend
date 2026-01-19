@@ -24,6 +24,7 @@ const HomePage = () => {
   const gradComm = "linear-gradient(135deg, #86efac 0%, #3b82f6 100%)"; // Green-Blue
   const gradLib = "linear-gradient(135deg, #fca5a5 0%, #fcd34d 100%)"; // Red-Yellow
   const gradExam = "linear-gradient(135deg, #67e8f9 0%, #2dd4bf 100%)"; // Cyan-Teal
+  const gradScan = "linear-gradient(135deg, #fa709a 0%, #fee140 100%)"; // Pink-Yellow (Attendance)
 
   useEffect(() => {
     const unsubAuth = onAuthStateChanged(auth, async (user) => {
@@ -83,7 +84,7 @@ const HomePage = () => {
             <div className="brand-logo">E</div>
             <h2>EduConnect</h2>
         </div>
-        {/* 🔥 FIXED LINK: /student-profile */}
+        {/* Profile Link */}
         <div className="nav-profile-pill" onClick={() => navigate('/student-profile')}>
             {studentData.photo ? <img src={studentData.photo} alt="P" /> : <FaUserCircle/>}
             <span>{userName}</span>
@@ -103,12 +104,13 @@ const HomePage = () => {
             </div>
         </header>
 
-        {/* WIDGETS (Admin Style but Purple/Green) */}
+        {/* WIDGETS */}
         <div className="widget-row">
-            <div className="ios-widget large-widget">
+            {/* 🔥 UPDATED: Added onClick to navigate to Scanner */}
+            <div className="ios-widget large-widget" onClick={() => navigate('/student/scan')}>
                 <div className="widget-content">
                     <h3>{attendance}%</h3>
-                    <p>Attendance</p>
+                    <p>Tap to Scan</p>
                     <div className="widget-icon" style={{background:'#d8b4fe'}}><FaQrcode/></div>
                 </div>
             </div>
@@ -132,6 +134,14 @@ const HomePage = () => {
         <div className="section-label">My Academics</div>
         <div className="app-grid-ios">
             
+            {/* 🔥 ADDED: Explicit Scan Button */}
+            <div className="app-icon-container" onClick={() => navigate('/student/scan')}>
+                <div className="app-squircle" style={{background: gradScan}}>
+                    <FaQrcode />
+                </div>
+                <span>Scan QR</span>
+            </div>
+
             <div className="app-icon-container" onClick={() => navigate('/subject')}>
                 <div className="app-squircle" style={{background: gradSub}}>
                     <FaChalkboardTeacher />
