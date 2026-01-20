@@ -160,14 +160,14 @@ const HomePage = () => {
                 <div className="app-squircle" style={{background: gradLib}}>
                     <FaBook />
                 </div>
-                <span>Library</span>
+                <span>B. Library</span>
             </div>
 
             <div className="app-icon-container" onClick={() => navigate('/papers')}>
                 <div className="app-squircle" style={{background: gradExam}}>
                     <FaChartPie />
                 </div>
-                <span>Results</span>
+                <span>PE. Papers</span>
             </div>
 
         </div>

@@ -1,53 +1,60 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap');
 
-/* --- GLOBAL WRAPPER (Apple Wallpaper Vibe) --- */
+/* --- GLOBAL WRAPPER (Light Aurora Vibe) --- */
 .super-admin-wrapper {
     min-height: 100vh;
-    background: #f5f5f7; /* Apple Light Gray */
     font-family: 'Outfit', sans-serif;
-    color: #1d1d1f;
+    /* 🔥 Light Purple-Pink-Green Gradient */
+    background: linear-gradient(135deg, #fdf4ff 0%, #eef2ff 50%, #f0fdf4 100%);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    color: #1e293b; /* Dark Text for readability */
     padding-bottom: 50px;
-    background-image: 
-        radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
-        radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
-        radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
-    background-size: 100% 100%; /* Dark Premium Vibe */
-    color: white; /* Text White for Dark BG */
 }
 
-/* --- NAVBAR (Glassy) --- */
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* --- NAVBAR (Glassy White) --- */
 .super-navbar {
     padding: 15px 40px;
     display: flex; justify-content: space-between; align-items: center;
-    background: rgba(20, 20, 20, 0.6);
+    background: rgba(255, 255, 255, 0.6); /* White Glass */
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     position: sticky; top: 0; z-index: 100;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.02);
 }
 
 .brand-box { display: flex; align-items: center; gap: 12px; }
 .brand-logo {
-    width: 38px; height: 38px; background: white; color: black;
+    width: 38px; height: 38px; 
+    background: linear-gradient(135deg, #9333ea, #db2777); /* Purple Icon */
+    color: white;
     border-radius: 10px; display: flex; justify-content: center; align-items: center;
     font-weight: 800; font-size: 1.4rem;
 }
-.brand-box h2 { font-size: 1.3rem; color: white; font-weight: 600; margin: 0; letter-spacing: -0.5px; }
+.brand-box h2 { font-size: 1.3rem; color: #1e293b; font-weight: 700; margin: 0; letter-spacing: -0.5px; }
 .admin-tag { 
-    background: rgba(255,255,255,0.2); color: white; font-size: 0.6rem; 
-    padding: 3px 8px; border-radius: 12px; margin-left: 10px; font-weight: 500; letter-spacing: 1px;
+    background: #f3e8ff; color: #7e22ce; font-size: 0.6rem; 
+    padding: 3px 8px; border-radius: 12px; margin-left: 10px; font-weight: 600; letter-spacing: 1px; border: 1px solid #d8b4fe;
 }
 
 /* Profile Pill */
 .profile-pill {
     display: flex; align-items: center; gap: 10px;
-    background: rgba(255,255,255,0.1); padding: 5px 15px 5px 5px;
-    border-radius: 30px; border: 1px solid rgba(255,255,255,0.1);
+    background: white; padding: 5px 15px 5px 5px;
+    border-radius: 30px; border: 1px solid rgba(0,0,0,0.05);
     transition: 0.3s; cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
 }
-.profile-pill:hover { background: rgba(255,255,255,0.2); }
+.profile-pill:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.1); }
 .profile-img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
-.profile-name { font-size: 0.9rem; font-weight: 500; }
+.profile-name { font-size: 0.9rem; font-weight: 600; color: #4b5563; }
 
 /* --- CONTENT AREA --- */
 .content-container { max-width: 1100px; margin: 0 auto; padding: 40px 20px; }
@@ -56,25 +63,26 @@
     display: flex; justify-content: space-between; align-items: flex-end;
     margin-bottom: 40px;
 }
-.selection-header h1 { font-size: 2.5rem; margin: 0 0 5px 0; font-weight: 700; letter-spacing: -1px; }
-.selection-header p { color: rgba(255,255,255,0.6); font-size: 1.1rem; margin: 0; }
+.selection-header h1 { font-size: 2.5rem; margin: 0 0 5px 0; font-weight: 800; color: #1f2937; letter-spacing: -1px; }
+.selection-header p { color: #6b7280; font-size: 1.1rem; margin: 0; }
 
-/* Global Button (iOS Button Style) */
+/* Global Button */
 .global-broadcast-btn {
-    background: rgba(255,255,255,0.1);
-    color: white; border: 1px solid rgba(255,255,255,0.2);
+    background: white;
+    color: #4b5563; border: 1px solid #e5e7eb;
     padding: 10px 20px; border-radius: 20px;
     font-size: 0.9rem; font-weight: 600; cursor: pointer;
     display: flex; align-items: center; gap: 8px;
-    backdrop-filter: blur(10px); transition: 0.3s;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    transition: 0.3s;
 }
-.global-broadcast-btn:hover { background: white; color: black; transform: scale(1.05); }
+.global-broadcast-btn:hover { background: #f9fafb; color: #111827; transform: scale(1.05); }
 
 /* --- APPLE APP GRID LAYOUT --- */
 .ios-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); /* Icon size */
-    gap: 40px 20px; /* Vertical Gap jyada for labels */
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
+    gap: 40px 20px; 
     justify-items: center;
 }
 
@@ -83,91 +91,100 @@
     display: flex; flex-direction: column; align-items: center; gap: 10px;
     cursor: pointer; transition: 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
-.app-item:hover .app-icon-box { transform: scale(1.1); box-shadow: 0 15px 35px rgba(0,0,0,0.4); }
-.app-item:active .app-icon-box { transform: scale(0.95); filter: brightness(0.8); }
+.app-item:hover .app-icon-box { transform: scale(1.1); box-shadow: 0 20px 40px rgba(147, 51, 234, 0.2); } /* Purple Shadow */
+.app-item:active .app-icon-box { transform: scale(0.95); filter: brightness(0.95); }
 
 .app-icon-box {
     width: 110px; height: 110px;
-    border-radius: 26px; /* iOS Squircle Radius */
+    border-radius: 26px; 
     display: flex; flex-direction: column; justify-content: center; align-items: center;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
     position: relative;
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.4);
     background-size: cover;
     transition: 0.3s;
 }
 
-/* Dynamic Gradients for Apps */
+/* Dynamic Gradients (Already Light/Pastel - Perfect for this theme) */
 .grad-1 { background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%); }
 .grad-2 { background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); }
 .grad-3 { background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); }
 .grad-4 { background: linear-gradient(135deg, #fccb90 0%, #d57eeb 100%); }
 .grad-5 { background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%); }
 
-.dept-initial { font-size: 2.5rem; font-weight: 800; color: white; text-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+.dept-initial { font-size: 2.5rem; font-weight: 800; color: white; text-shadow: 0 2px 5px rgba(0,0,0,0.1); }
 .student-badge { 
     position: absolute; top: 8px; right: 8px; 
-    background: rgba(0,0,0,0.4); color: white; 
+    background: rgba(255,255,255,0.3); color: white; 
     font-size: 0.65rem; padding: 2px 6px; border-radius: 10px; 
-    backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px); font-weight: 700;
 }
 
 .app-label {
-    font-size: 0.9rem; font-weight: 500; color: white; 
+    font-size: 0.95rem; font-weight: 600; color: #374151; /* Dark Grey Text */
     text-align: center; width: 120px;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    /* Removed heavy text shadow for clean look */
 }
 
-/* --- ADD BUTTON (Glass Style) --- */
+/* --- ADD BUTTON (Light Dashed) --- */
 .add-app-box {
-    background: rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.6);
     backdrop-filter: blur(10px);
-    border: 1px dashed rgba(255,255,255,0.3);
-    color: white;
+    border: 2px dashed #cbd5e1;
+    color: #94a3b8;
 }
-.add-app-box:hover { background: rgba(255,255,255,0.25); border-style: solid; }
-.add-icon { font-size: 2rem; opacity: 0.8; }
+.add-app-box:hover { 
+    background: #ecfdf5; border-color: #10b981; color: #10b981; /* Green Hover */
+}
+.add-icon { font-size: 2rem; opacity: 1; }
 
 /* --- RECENT WIDGET (Top Large Card) --- */
 .widget-section { margin-bottom: 40px; }
-.widget-label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.5); margin-bottom: 15px; font-weight: 600; }
+.widget-label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: #6b7280; margin-bottom: 15px; font-weight: 700; }
 
 .recent-widget {
-    background: rgba(255,255,255,0.1);
+    background: white;
     backdrop-filter: blur(20px);
     border-radius: 28px;
     padding: 25px;
     display: flex; align-items: center; justify-content: space-between;
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 1px solid rgba(0,0,0,0.05);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
     cursor: pointer; transition: 0.3s;
     max-width: 500px;
 }
-.recent-widget:hover { background: rgba(255,255,255,0.15); transform: scale(1.02); }
+.recent-widget:hover { transform: scale(1.02); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
 
-.rw-info h2 { margin: 0; font-size: 1.8rem; }
-.rw-info p { margin: 5px 0 0; opacity: 0.7; }
-.rw-arrow { background: white; color: black; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.rw-info h2 { margin: 0; font-size: 1.8rem; color: #1f2937; }
+.rw-info p { margin: 5px 0 0; color: #6b7280; }
+.rw-arrow { background: #f3f4f6; color: #111827; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 
-/* --- MODAL (Clean Dark Mode) --- */
+/* --- MODAL (Clean Light Mode) --- */
 .modal-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.6); backdrop-filter: blur(10px);
+    background: rgba(0,0,0,0.3); backdrop-filter: blur(5px);
     display: flex; justify-content: center; align-items: center; z-index: 200;
 }
 .modal-box {
-    background: #1c1c1e; color: white;
+    background: white; color: #1f2937;
     padding: 30px; border-radius: 24px;
     width: 90%; max-width: 400px;
     text-align: center;
-    box-shadow: 0 25px 50px rgba(0,0,0,0.5);
-    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+    border: 1px solid #f3e8ff;
 }
+.modal-box h3 { margin-top: 0; font-size: 1.5rem; color: #4b5563; }
+
 .modal-box input, .modal-box textarea {
-    background: #2c2c2e; border: none; color: white;
+    background: #f9fafb; border: 1px solid #e5e7eb; color: #1f2937;
+    width: 100%; padding: 12px; border-radius: 12px; margin: 15px 0; outline: none;
+    font-size: 1rem;
 }
-.create-btn { background: #0A84FF; } 
-.cancel-btn { background: #3a3a3c; color: white; }
+.modal-box input:focus { border-color: #c084fc; box-shadow: 0 0 0 3px #f3e8ff; }
+
+.create-btn { background: linear-gradient(135deg, #9333ea, #db2777); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 600; cursor: pointer; margin-right: 10px; }
+.cancel-btn { background: #f3f4f6; color: #4b5563; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 600; cursor: pointer; }
 
 /* Loader */
-.loading-txt { text-align: center; margin-top: 50px; font-size: 1.2rem; opacity: 0.7; }
+.loading-txt { text-align: center; margin-top: 50px; font-size: 1.2rem; color: #6b7280; }

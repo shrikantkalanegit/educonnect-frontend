@@ -76,24 +76,30 @@ const AdminAttendance = () => {
     return () => clearInterval(interval);
   }, [step, generateDynamicQR]);
 
+  // 🔥 EXPORT REPORT FIX (Correct Headers & Data)
   const handleDownloadReport = async () => {
     try {
         const q = query(collection(db, "attendance_records"), where("subjectId", "==", selectedSubject.id));
         const snap = await getDocs(q);
-        const data = snap.docs.map(doc => ({
-            "Name": doc.data().studentName, "ID": doc.data().studentId || "N/A", "Date": doc.data().date,
-            "Time": doc.data().timestamp?.seconds ? new Date(doc.data().timestamp.seconds * 1000).toLocaleTimeString() : "N/A"
-        }));
+        
+        const data = snap.docs.map(doc => {
+            const d = doc.data();
+            return {
+                "Student Name": d.studentName,
+                "Student Code": d.studentCode || "N/A", // 🔥 Correct ID Field
+                "Date": d.date,
+                "Time": d.timestamp?.seconds ? new Date(d.timestamp.seconds * 1000).toLocaleTimeString() : "N/A"
+            };
+        });
+
         const ws = XLSX.utils.json_to_sheet(data);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Attendance");
-        XLSX.writeFile(wb, `${selectedSubject.name}_Report.xlsx`);
-    } catch (e) { alert("Error"); }
+        XLSX.writeFile(wb, `${selectedSubject.name}_Attendance.xlsx`);
+    } catch (e) { alert("Error generating report"); }
   };
 
-  // --- RENDER STEPS ---
-
-  // STEP 0: YEAR (List View)
+  // --- RENDER ---
   if (step === 0) {
     return (
         <div className="attend-container">
@@ -116,7 +122,6 @@ const AdminAttendance = () => {
     );
   }
 
-  // STEP 1: SUBJECT (List View)
   if (step === 1) {
     return (
         <div className="attend-container">
@@ -145,7 +150,7 @@ const AdminAttendance = () => {
     );
   }
 
-  // STEP 2: DASHBOARD (Updated with Premium Glass UI)
+  // STEP 2: DASHBOARD
   return (
     <div className="attend-dashboard-wrapper">
       <header className="dash-header">
@@ -158,7 +163,6 @@ const AdminAttendance = () => {
       </header>
 
       <div className="dash-content">
-        {/* Glass QR Card */}
         <div className="qr-section">
             <div className="qr-card">
                 <h3>Scan to Mark</h3>
@@ -169,7 +173,6 @@ const AdminAttendance = () => {
             </div>
         </div>
 
-        {/* Glass List Card */}
         <div className="list-section">
             <div className="list-header-simple">
                 <h3><FaListAlt /> Present Students</h3>
@@ -181,7 +184,10 @@ const AdminAttendance = () => {
                         <span className="row-idx">{i+1}</span>
                         <div className="row-info">
                             <h4>{st.studentName}</h4>
-                            <p>{st.studentId}</p>
+                            {/* 🔥 Display Correct Code Here */}
+                            <p style={{fontSize:'0.8rem', color:'#64748b'}}>
+                                {st.studentCode || st.studentId || "ID N/A"}
+                            </p>
                         </div>
                         <span className="row-time">
                             {st.timestamp?.seconds ? new Date(st.timestamp.seconds*1000).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : "Just now"}

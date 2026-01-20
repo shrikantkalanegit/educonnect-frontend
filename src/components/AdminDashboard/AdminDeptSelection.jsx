@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { db, auth } from "../../firebase"; 
 import { signOut, onAuthStateChanged } from "firebase/auth";
-import { collection, addDoc, getDocs, getDoc, doc, serverTimestamp, query, orderBy, Timestamp } from "firebase/firestore";
+import { collection, addDoc, getDocs, onSnapshot, doc, serverTimestamp, query, orderBy, Timestamp } from "firebase/firestore";
 import { FaPlus, FaArrowRight, FaBullhorn, FaSignOutAlt, FaUserCircle, FaPaperPlane, FaTimes } from "react-icons/fa";
 import "./AdminDeptSelection.css"; 
 
@@ -26,22 +26,33 @@ const AdminDeptSelection = () => {
     const lastDept = localStorage.getItem("currentDept");
     if(lastDept) setRecentDept(lastDept);
 
-    // 2. Auth Check
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    let unsubAdmin = null; // Listener Store karne ke liye
+
+    // 2. Auth Check & Real-time Profile Listener
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
         if(user) {
-            const docSnap = await getDoc(doc(db, "admins", user.uid));
-            if(docSnap.exists()) {
-                setAdminData({ 
-                    name: docSnap.data().name, 
-                    photo: docSnap.data().profilePic || user.photoURL 
-                });
-            }
+            // 🔥 FIX: getDoc hatakar onSnapshot lagaya (Real-time update ke liye)
+            unsubAdmin = onSnapshot(doc(db, "admins", user.uid), (docSnap) => {
+                if(docSnap.exists()) {
+                    const data = docSnap.data();
+                    setAdminData({ 
+                        name: data.name, 
+                        // Yahan hum 'photo' aur 'profilePic' dono check kar rahe hain
+                        photo: data.photo || data.profilePic || user.photoURL 
+                    });
+                }
+            });
             fetchDepts();
         } else {
             navigate("/admin-login");
         }
     });
-    return () => unsubscribe();
+
+    // Cleanup function
+    return () => {
+        unsubscribe();
+        if(unsubAdmin) unsubAdmin();
+    };
   }, [navigate]);
 
   const fetchDepts = async () => {
@@ -159,7 +170,6 @@ const AdminDeptSelection = () => {
 
                     {/* Department App Icons */}
                     {departments.map((dept, index) => {
-                        // Random Gradient Assign
                         const gradClass = gradClasses[index % gradClasses.length];
                         const initial = dept.name.charAt(0);
 

@@ -46,25 +46,35 @@ const StudentScanner = () => {
         throw new Error(`Date Mismatch!\nQR: ${qrData.date}, You: ${today}`);
       }
 
-      // 2. 🔥 TIME CHECK (Proxy Prevention)
-      // Agar QR 60 seconds (60000ms) se purana hai, to reject karo
+      // 2. TIME CHECK
       const qrTime = qrData.generatedAt;
       const currentTime = Date.now();
       const timeDiff = currentTime - qrTime;
 
-      // Agar time difference 1 minute se zyada hai
       if (timeDiff > 60000) { 
         throw new Error("⚠️ QR Code Expired!\nPlease scan the LIVE code from screen.");
       }
-
-      // (Optional: Agar time negative hai matlb student ka clock peeche hai)
       if (timeDiff < -5000) {
          throw new Error("⚠️ Check your phone time.\nIt seems incorrect.");
       }
 
       if (!qrData.subjectId || !qrData.valid) throw new Error("Invalid Class QR");
 
-      // ID Construction
+      // 🔥 FETCH CORRECT STUDENT DETAILS (Roll No / Student Code)
+      const userDocRef = doc(db, "users", user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+      
+      let readableId = "N/A";
+      let studentName = localStorage.getItem("userName") || "Student";
+
+      if (userDocSnap.exists()) {
+          const uData = userDocSnap.data();
+          // Code ko Priority: Roll No -> StudentId -> UID (last option)
+          readableId = uData.rollNo || uData.studentId || "N/A"; 
+          studentName = uData.name || studentName;
+      }
+
+      // 3. MARK ATTENDANCE
       const safeDate = today.replace(/\//g, "-");
       const attendanceId = `${qrData.subjectId}_${safeDate}_${user.uid}`;
       const attendanceRef = doc(db, "attendance_records", attendanceId);
@@ -77,8 +87,9 @@ const StudentScanner = () => {
       }
 
       await setDoc(attendanceRef, {
-        studentId: user.uid,
-        studentName: localStorage.getItem("userName") || "Student",
+        studentUid: user.uid, // Technical ID
+        studentCode: readableId, // 🔥 READABLE ID (Roll No)
+        studentName: studentName,
         subjectId: qrData.subjectId,
         subjectName: qrData.subjectName,
         date: today,

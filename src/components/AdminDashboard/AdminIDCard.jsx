@@ -1,40 +1,63 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom"; 
 import "./AdminIDCard.css";
-import { FaSearch, FaPrint, FaCheckSquare, FaSquare, FaUpload, FaTrash } from "react-icons/fa";
+import { FaSearch, FaPrint, FaCheckSquare, FaSquare, FaUpload, FaTrash, FaArrowLeft } from "react-icons/fa";
 import { QRCodeCanvas } from "qrcode.react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import { db } from "../../firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { db, auth } from "../../firebase"; 
+import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
 
 const AdminIDCard = () => {
+  const navigate = useNavigate();
   const [students, setStudents] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedIds, setSelectedIds] = useState([]); 
   const [previewStudent, setPreviewStudent] = useState(null);
   const [principalSign, setPrincipalSign] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   
   const frontRef = useRef(null);
   const backRef = useRef(null);
 
+  // 1. SECURITY & DATA FETCH
   useEffect(() => {
-    const fetchStudents = async () => {
-      const q = query(collection(db, "users"), where("role", "==", "student"));
-      const snap = await getDocs(q);
-      const list = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setStudents(list);
-      if(list.length > 0) setPreviewStudent(list[0]);
-    };
-    fetchStudents();
-  }, []);
+    const checkAuthAndFetch = async () => {
+      const user = auth.currentUser;
+      if (!user) {
+        alert("⚠️ Unauthorized Access! Please Login.");
+        navigate("/");
+        return;
+      }
 
-  // 🔥 NEW ADDRESS FORMAT LOGIC
+      try {
+        const adminDoc = await getDoc(doc(db, "admins", user.uid));
+        if (!adminDoc.exists()) {
+           alert("⚠️ Access Denied! Admins Only.");
+           navigate("/home"); 
+           return;
+        }
+        setIsAdmin(true);
+
+        const q = query(collection(db, "users"), where("role", "==", "student"));
+        const snap = await getDocs(q);
+        const list = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setStudents(list);
+        if(list.length > 0) setPreviewStudent(list[0]);
+
+      } catch (error) {
+        console.error("Security Check Failed:", error);
+        navigate("/");
+      }
+    };
+    checkAuthAndFetch();
+  }, [navigate]);
+
   const formatAddress = (addr) => {
-      if (!addr) return "Pune, Maharashtra"; // Fallback
+      if (!addr) return "Pune, Maharashtra";
       if (typeof addr === "string") return addr;
       if (typeof addr === "object") {
           const { at, post, taluka, district, pincode } = addr;
-          // Format: At. post (...), Tq.(...), Dist.(...). Pincode-(...)
           return `At. Post ${at || '-'}, Tq. ${taluka || '-'}, Dist. ${district || '-'}. Pincode-${pincode || '-'}`;
       }
       return "N/A";
@@ -60,6 +83,7 @@ const AdminIDCard = () => {
     s.department?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // 2. BATCH PRINT LOGIC
   const generateBatchPDF = async () => {
     if (selectedIds.length === 0) { alert("Select students first!"); return; }
     if (!principalSign && !window.confirm("⚠️ No Signature! Print anyway?")) return;
@@ -67,41 +91,58 @@ const AdminIDCard = () => {
     const pdf = new jsPDF('p', 'mm', 'a4'); 
     const batchStudents = students.filter(s => selectedIds.includes(s.id));
     
-    const cardsPerPage = 8; const cardWidth = 86; const cardHeight = 54; 
+    const cardsPerPage = 8; 
+    const cardWidth = 86; const cardHeight = 54; 
     const marginX = 15; const marginY = 10; const gap = 5;
 
-    // FRONT
+    // FRONT SIDES
     for (let i = 0; i < batchStudents.length; i++) {
         const indexOnPage = i % cardsPerPage;
         if (i > 0 && indexOnPage === 0) pdf.addPage();
-        const col = indexOnPage % 2; const row = Math.floor(indexOnPage / 2);
-        const x = marginX + (col * (cardWidth + gap)); const y = marginY + (row * (cardHeight + gap));
+        
+        const col = indexOnPage % 2; 
+        const row = Math.floor(indexOnPage / 2);
+        const x = marginX + (col * (cardWidth + gap)); 
+        const y = marginY + (row * (cardHeight + gap));
 
         setPreviewStudent(batchStudents[i]); await new Promise(r => setTimeout(r, 50)); 
         const canvas = await html2canvas(frontRef.current, { scale: 3, useCORS: true });
         pdf.addImage(canvas.toDataURL('image/png'), 'PNG', x, y, cardWidth, cardHeight);
     }
     
-    // BACK
+    // BACK SIDES (MIRRORED)
     pdf.addPage();
     for (let i = 0; i < batchStudents.length; i++) {
         const indexOnPage = i % cardsPerPage;
         if (i > 0 && indexOnPage === 0) pdf.addPage();
-        const col = indexOnPage % 2; const row = Math.floor(indexOnPage / 2);
-        const x = marginX + (col * (cardWidth + gap)); const y = marginY + (row * (cardHeight + gap));
+        
+        const originalCol = indexOnPage % 2; 
+        const row = Math.floor(indexOnPage / 2); 
+        const mirrorCol = originalCol === 0 ? 1 : 0; 
+
+        const x = marginX + (mirrorCol * (cardWidth + gap)); 
+        const y = marginY + (row * (cardHeight + gap));
 
         setPreviewStudent(batchStudents[i]); await new Promise(r => setTimeout(r, 50));
         const canvas = await html2canvas(backRef.current, { scale: 3 });
         pdf.addImage(canvas.toDataURL('image/png'), 'PNG', x, y, cardWidth, cardHeight);
     }
 
-    pdf.save("EduConnect_IDs.pdf");
+    pdf.save("EduConnect_IDs_PrintReady.pdf");
   };
+
+  if (!isAdmin) return null; 
 
   return (
     <div className="id-generator-container">
+      
+      {/* SIDEBAR */}
       <div className="id-sidebar">
-        <h3>ID Control Panel 🎛️</h3>
+        <div className="sidebar-header-row">
+            <button onClick={() => navigate(-1)} className="back-circle-btn"><FaArrowLeft/></button>
+            <h3>ID Panel 🎛️</h3>
+        </div>
+
         <div className="sign-upload-box">
             <label>Principal Signature</label>
             <div className="upload-btn-wrapper">
@@ -148,6 +189,7 @@ const AdminIDCard = () => {
         </div>
       </div>
 
+      {/* PREVIEW AREA */}
       <div className="id-preview-area">
           <div className="preview-top-bar">
               <h2>Official Card Preview</h2>
@@ -159,7 +201,7 @@ const AdminIDCard = () => {
           {previewStudent ? (
              <div className="card-display-stage">
                 
-                {/* --- FRONT SIDE --- */}
+                {/* FRONT */}
                 <div className="std-card front" ref={frontRef}>
                     <div className="std-header">
                         <img src="/logo192.png" className="std-logo" alt="Logo"/>
@@ -180,16 +222,17 @@ const AdminIDCard = () => {
                         </div>
                         <div className="std-right-col">
                             <h3 className="std-name">{previewStudent.name}</h3>
-                            <div className="std-course-badge">{previewStudent.department} Engg.</div>
+                            
+                            {/* 🔥 UPDATED BADGE: Dept - Year */}
+                            <div className="std-course-badge">
+                                {previewStudent.department} - {previewStudent.year || "Year N/A"}
+                            </div>
                             
                             <div className="std-details-grid">
-                                {/* 🔥 Year added here specifically */}
                                 <div className="detail-row"><span>Year:</span> <strong>2026-27</strong></div>
                                 <div className="detail-row"><span>DOB:</span> <strong>{previewStudent.dob || "N/A"}</strong></div>
                                 <div className="detail-row"><span>Blood Grp:</span> <strong>{previewStudent.bloodGroup || "O+"}</strong></div>
                                 <div className="detail-row"><span>Contact:</span> <strong>{previewStudent.phone || previewStudent.mobile || "N/A"}</strong></div>
-                                
-                                {/* 🔥 Address with new format */}
                                 <div className="detail-row full-width">
                                     <span>Address:</span> 
                                     <strong>{formatAddress(previewStudent.address)}</strong>
@@ -197,23 +240,18 @@ const AdminIDCard = () => {
                             </div>
                         </div>
                     </div>
-                    {/* Footer removed since Year is now in details, or can keep decorative */}
                     <div className="std-footer">www.educonnect.in</div>
                 </div>
 
-                {/* --- BACK SIDE --- */}
+                {/* BACK */}
                 <div className="std-card back" ref={backRef}>
                     <div className="std-back-header"><h4>IMPORTANT INSTRUCTIONS</h4></div>
                     <div className="std-back-body">
                         <div className="std-qr-box">
                              <QRCodeCanvas 
-                                value={JSON.stringify({
-                                    code: previewStudent.rollNo || previewStudent.studentId,
-                                    name: previewStudent.name
-                                })} 
+                                value={`Name: ${previewStudent.name}\nStudent Code: ${previewStudent.rollNo || previewStudent.studentId || "N/A"}\nDept: ${previewStudent.department}`} 
                                 size={65} 
                             />
-                            {/* 🔥 Student Code displayed clearly */}
                             <p className="std-code">Student Code: <br/>{previewStudent.rollNo || previewStudent.studentId || "N/A"}</p>
                         </div>
                         <ul className="std-rules">
@@ -228,7 +266,6 @@ const AdminIDCard = () => {
                         <p>📍 EduConnect Campus, Tech Park, Pune - 411057</p>
                     </div>
                 </div>
-
              </div>
           ) : (
              <div className="empty-state">Select a student</div>

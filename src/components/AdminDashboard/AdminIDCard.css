@@ -9,6 +9,19 @@
     width: 340px; background: white; padding: 20px; border-right: 1px solid #fbcfe8;
     display: flex; flex-direction: column; gap: 15px;
 }
+
+/* New Header Row for Back Button */
+.sidebar-header-row {
+    display: flex; align-items: center; gap: 15px; margin-bottom: 5px;
+}
+.back-circle-btn {
+    width: 35px; height: 35px; border-radius: 50%; border: none;
+    background: #fdf2f8; color: #db2777; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: 0.2s;
+}
+.back-circle-btn:hover { background: #fce7f3; transform: scale(1.1); }
+.id-sidebar h3 { margin: 0; color: #831843; font-weight: 700; }
+
 .sign-upload-box {
     background: #fdf2f8; padding: 15px; border: 1px dashed #f472b6; border-radius: 12px; text-align: center;
 }
@@ -48,7 +61,7 @@
 }
 .print-main-btn:disabled { background: #e5e7eb; cursor: not-allowed; }
 
-/* 🔥 CARD DESIGN (Purple + Pink Theme) */
+/* CARD DESIGN (Purple + Pink Theme) */
 .std-card {
     width: 325px; height: 204px; background: white; border-radius: 10px; overflow: hidden;
     box-shadow: 0 10px 30px rgba(147, 51, 234, 0.15);
@@ -57,9 +70,9 @@
 
 /* Front Header */
 .std-header {
-    background: linear-gradient(135deg, #9333ea 0%, #db2777 100%); /* Purple to Pink */
+    background: linear-gradient(135deg, #9333ea 0%, #db2777 100%);
     height: 48px; display: flex; align-items: center; padding: 0 12px; gap: 10px;
-    border-bottom: 2px solid #fcd34d; /* Gold Stripe */
+    border-bottom: 2px solid #fcd34d;
 }
 .std-logo { width: 32px; height: 32px; background: white; border-radius: 50%; padding: 2px; }
 .std-college-info h1 { margin: 0; color: white; font-size: 0.85rem; font-weight: 700; letter-spacing: 0.5px; }
