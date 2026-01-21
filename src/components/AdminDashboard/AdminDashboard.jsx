@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import "./AdminDashboard.css";
+// 🔥 FIX: FaClipboardList ko yahan add kar diya hai 👇
 import { 
   FaBell, FaUserCircle, FaChalkboardTeacher, 
   FaCrown, FaRobot, FaQrcode, FaBook, FaFileAlt, 
-  FaComments, FaUniversity, FaUserGraduate, FaBullhorn, FaUserCog, FaIdCard 
+  FaComments, FaUniversity, FaUserGraduate, FaBullhorn, FaUserCog, FaIdCard, FaClipboardList 
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../../firebase";
@@ -205,6 +206,14 @@ const AdminDashboard = () => {
                 </div>
                 <span>Attend</span>
             </div>
+            
+            {/* 🔥 Fixed Assignments Icon */}
+            <div className="app-icon-container" onClick={() => navigate('/admin/assignments')}>
+                <div className="app-squircle" style={{background: 'linear-gradient(135deg, #fccb90 0%, #d57eeb 100%)'}}>
+                    <FaClipboardList />
+                </div>
+                <span>Assignments</span>
+           </div>
 
             <div className="app-icon-container" onClick={() => navigate('/admin/manage-books')}>
                 <div className="app-squircle" style={{background: gradLib}}>

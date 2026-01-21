@@ -1,83 +1,86 @@
 import React, { useState, useEffect } from "react";
-import Navbar from "../Navbar/Navbar"; 
-import { FaFileAlt, FaDownload, FaArrowLeft } from "react-icons/fa";
+import { FaFilePdf, FaDownload, FaArrowLeft, FaFilter } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { realtimeDb as db } from "../../firebase"; 
 import { ref, onValue } from "firebase/database";
-import "./StudentExams.css"; // 👈 Ab ye apni sahi CSS use karega
+import "./StudentExams.css"; 
 
 const StudentExams = () => {
   const navigate = useNavigate();
   const [exams, setExams] = useState([]);
   const [selectedYear, setSelectedYear] = useState("1st Year"); 
+  const [loading, setLoading] = useState(true);
 
-  // Firebase se data fetch karna
   useEffect(() => {
     const examRef = ref(db, 'exam_papers');
     onValue(examRef, (snapshot) => {
       const data = snapshot.val();
       const loaded = data ? Object.entries(data).map(([key, val]) => ({ id: key, ...val })) : [];
       setExams(loaded);
+      setLoading(false);
     });
   }, []);
 
-  // Filter Logic
   const filteredExams = exams.filter(ex => ex.year === selectedYear);
 
   return (
-    <>
-      <Navbar />
-      <div className="exam-wrapper">
-        
-        <div className="exam-header">
-            <button className="back-btn" onClick={() => navigate('/home')} style={{position:'absolute', left:'20px', background:'none', border:'none', fontSize:'1.2rem', cursor:'pointer'}}>
-                <FaArrowLeft />
-            </button>
-            <div className="header-text">
-                <h1>Exam Papers 📝</h1>
-                <p>Select your year to view papers.</p>
-            </div>
-            
-            <div className="year-tabs">
-                {["1st Year", "2nd Year", "3rd Year", "4th Year"].map(yr => (
-                    <button 
-                        key={yr} 
-                        className={`tab-btn ${selectedYear === yr ? 'active' : ''}`}
-                        onClick={() => setSelectedYear(yr)}
-                    >
-                        {yr}
-                    </button>
-                ))}
-            </div>
-        </div>
+    <div className="exam-wrapper-ios">
+      
+      {/* HEADER */}
+      <header className="exam-header-glass">
+          <button className="back-btn-glass" onClick={() => navigate('/home')}>
+              <FaArrowLeft />
+          </button>
+          <div className="header-title-box">
+              <h1>Exam Portal 📝</h1>
+              <p>Previous Year Papers</p>
+          </div>
+          <div className="header-spacer"></div>
+      </header>
 
-        <div className="exam-grid">
-            {filteredExams.length > 0 ? (
-                filteredExams.map((paper) => (
-                    <div key={paper.id} className="exam-card">
-                        <div className="exam-icon-area">
-                            <FaFileAlt className="pdf-icon"/>
-                            <span className="exam-subject">{paper.subject}</span>
-                        </div>
-                        <div className="exam-info">
-                            <h3>{paper.title}</h3>
-                            <p className="exam-date">Uploaded: {paper.date}</p>
-                            
-                            <button className="download-btn" onClick={() => window.open(paper.link, '_blank')}>
-                                <FaDownload /> Download
-                            </button>
-                        </div>
-                    </div>
-                ))
-            ) : (
-                <div className="no-results">
-                    <h3>No Papers Found for {selectedYear}</h3>
-                </div>
-            )}
-        </div>
-
+      {/* YEAR FILTER TABS */}
+      <div className="exam-filter-tabs">
+          {["1st Year", "2nd Year", "3rd Year", "4th Year"].map(yr => (
+              <button 
+                  key={yr} 
+                  className={`exam-tab-btn ${selectedYear === yr ? 'active' : ''}`}
+                  onClick={() => setSelectedYear(yr)}
+              >
+                  {yr}
+              </button>
+          ))}
       </div>
-    </>
+
+      {/* PAPERS LIST */}
+      <div className="exam-content-area">
+          {loading ? (
+              <div className="loading-state">Fetching Papers...</div>
+          ) : filteredExams.length > 0 ? (
+              <div className="exam-grid-ios">
+                  {filteredExams.map((paper) => (
+                      <div key={paper.id} className="exam-card-ios">
+                          <div className="exam-icon-box">
+                              <FaFilePdf />
+                          </div>
+                          <div className="exam-info">
+                              <h3>{paper.title}</h3>
+                              <p className="exam-meta">{paper.subject} • {paper.date}</p>
+                          </div>
+                          <button className="download-btn-ios" onClick={() => window.open(paper.link, '_blank')}>
+                              <FaDownload />
+                          </button>
+                      </div>
+                  ))}
+              </div>
+          ) : (
+              <div className="empty-state-ios">
+                  <h3>No Papers Found</h3>
+                  <p>No exams uploaded for {selectedYear} yet.</p>
+              </div>
+          )}
+      </div>
+
+    </div>
   );
 };
 

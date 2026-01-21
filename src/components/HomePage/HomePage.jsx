@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import "./HomePage.css";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../../firebase"; 
-import { collection, query, orderBy, onSnapshot, doc, getDoc } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, doc, getDoc, where } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { 
   FaBookOpen, FaUsers, FaBook, FaChartPie, FaBell, FaCalendarAlt, 
@@ -15,16 +15,16 @@ const HomePage = () => {
   const [studentData, setStudentData] = useState({ department: "", year: "", photo: "" }); 
   const [notices, setNotices] = useState([]);
   
-  // Demo Stats
-  const [attendance] = useState(78); 
-  const [assignments] = useState(3);
+  // 🔥 REAL-TIME STATS STATE
+  const [attendanceCount, setAttendanceCount] = useState(0); 
+  const [pendingAssignments, setPendingAssignments] = useState(0);
 
   // Gradients for Student Theme
-  const gradSub = "linear-gradient(135deg, #d8b4fe 0%, #f0abfc 100%)"; // Purple-Pink
-  const gradComm = "linear-gradient(135deg, #86efac 0%, #3b82f6 100%)"; // Green-Blue
-  const gradLib = "linear-gradient(135deg, #fca5a5 0%, #fcd34d 100%)"; // Red-Yellow
-  const gradExam = "linear-gradient(135deg, #67e8f9 0%, #2dd4bf 100%)"; // Cyan-Teal
-  const gradScan = "linear-gradient(135deg, #fa709a 0%, #fee140 100%)"; // Pink-Yellow (Attendance)
+  const gradSub = "linear-gradient(135deg, #d8b4fe 0%, #f0abfc 100%)"; 
+  const gradComm = "linear-gradient(135deg, #86efac 0%, #3b82f6 100%)"; 
+  const gradLib = "linear-gradient(135deg, #fca5a5 0%, #fcd34d 100%)"; 
+  const gradExam = "linear-gradient(135deg, #67e8f9 0%, #2dd4bf 100%)"; 
+  const gradScan = "linear-gradient(135deg, #fa709a 0%, #fee140 100%)"; 
 
   useEffect(() => {
     const unsubAuth = onAuthStateChanged(auth, async (user) => {
@@ -32,6 +32,7 @@ const HomePage = () => {
       if (user.displayName) setUserName(user.displayName.split(" ")[0]);
 
       try {
+        // 1. Fetch Student Details
         const docRef = doc(db, "users", user.uid);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
@@ -41,12 +42,51 @@ const HomePage = () => {
                 year: data.year,
                 photo: data.photo 
             });
+            
+            // 2. Start Listeners
             fetchAndFilterNotices(data.department, data.year);
+            fetchRealTimeStats(user.uid, data.department, data.year);
         }
       } catch (e) { console.error("Error fetching user data:", e); }
     });
     return () => unsubAuth();
   }, []);
+
+  // 🔥 FETCH REAL-TIME STATS (Attendance & Assignments)
+  const fetchRealTimeStats = (uid, dept, year) => {
+    
+    // A. Attendance Calculation (Count present records)
+    const attendRef = collection(db, "attendance_records");
+    const qAttend = query(attendRef, where("studentUid", "==", uid));
+    
+    onSnapshot(qAttend, (snap) => {
+        // Jitne documents mile, utni baar student present tha
+        setAttendanceCount(snap.size); 
+    });
+
+    // B. Assignment Logic (Total Given - Submitted = Pending)
+    // Note: Abhi hum sirf logic laga rahe hain. Jab aap Assignment Upload feature banayenge tab ye data dikhayega.
+    
+    // 1. Teacher ne kitne diye? (Assignment Collection)
+    const assignRef = collection(db, "assignments"); // Maan lo ye collection hai
+    const qAssign = query(assignRef, where("department", "==", dept), where("year", "==", year));
+    
+    // 2. Student ne kitne kiye? (Submissions Collection)
+    const submitRef = collection(db, "submissions");
+    const qSubmit = query(submitRef, where("studentUid", "==", uid));
+
+    // Dono ko track karo
+    onSnapshot(qAssign, (assignSnap) => {
+        const totalGiven = assignSnap.size;
+        
+        onSnapshot(qSubmit, (submitSnap) => {
+             const totalSubmitted = submitSnap.size;
+             // Pending kabhi negative nahi hona chahiye
+             const pending = Math.max(0, totalGiven - totalSubmitted);
+             setPendingAssignments(pending);
+        });
+    });
+  };
 
   // Notice Logic
   const fetchAndFilterNotices = (userDept, userYear) => {
@@ -106,21 +146,27 @@ const HomePage = () => {
 
         {/* WIDGETS */}
         <div className="widget-row">
-            {/* 🔥 UPDATED: Added onClick to navigate to Scanner */}
+            
+            {/* 🔥 1. ATTENDANCE WIDGET (Dynamic) */}
             <div className="ios-widget large-widget" onClick={() => navigate('/student/scan')}>
                 <div className="widget-content">
-                    <h3>{attendance}%</h3>
-                    <p>Tap to Scan</p>
+                    {/* Abhi hum Percentage nahi, Count dikha rahe hain kyunki Total classes pata nahi hain */}
+                    <h3>{attendanceCount} <span style={{fontSize:'1rem', color:'#666'}}>Sessions</span></h3>
+                    <p>Total Present</p>
                     <div className="widget-icon" style={{background:'#d8b4fe'}}><FaQrcode/></div>
                 </div>
             </div>
+
+            {/* 🔥 2. ASSIGNMENTS WIDGET (Dynamic) */}
             <div className="ios-widget">
                 <div className="widget-content">
-                    <h3>{assignments}</h3>
-                    <p>Pending</p>
+                    {/* Agar 0 pending hai to "All Done" dikhaye */}
+                    <h4>{pendingAssignments === 0 ? "✅" : pendingAssignments}</h4>
+                    <p>{pendingAssignments === 0 ? "All Done" : "Pending"}</p>
                     <div className="widget-icon" style={{background:'#fca5a5'}}><FaClipboardList/></div>
                 </div>
             </div>
+
             <div className="ios-widget">
                 <div className="widget-content">
                     <h3>{notices.length}</h3>
@@ -134,7 +180,6 @@ const HomePage = () => {
         <div className="section-label">My Academics</div>
         <div className="app-grid-ios">
             
-            {/* 🔥 ADDED: Explicit Scan Button */}
             <div className="app-icon-container" onClick={() => navigate('/student/scan')}>
                 <div className="app-squircle" style={{background: gradScan}}>
                     <FaQrcode />

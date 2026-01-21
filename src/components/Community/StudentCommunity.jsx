@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "./StudentCommunity.css"; 
-import Navbar from "../Navbar/Navbar"; 
+// Navbar Import Removed ✅
 import { 
-  FaHeart, FaRegHeart, FaComment, FaShare, FaPaperPlane, 
+  FaHeart, FaRegHeart, FaComment, FaPaperPlane, 
   FaUniversity, FaUsers, FaGlobe, FaTrash, FaImage, FaTimes
-  // FaUserCircle हटा दिया क्योंकि अब असली इमेज यूज़ कर रहे हैं
 } from "react-icons/fa";
 
 import { auth, db } from "../../firebase"; 
@@ -153,102 +152,100 @@ const StudentCommunity = () => {
   if (!userData) return <div className="loading-screen">Loading...</div>;
 
   return (
-    <>
-      <Navbar />
-      <div className="stu-comm-container">
-        
-        {/* 🔥 UPDATED HEADER: Right Side Real Profile Pic */}
-        <header className="comm-header-glass custom-header-layout">
-            <button className="back-btn-glass" onClick={() => navigate(-1)}>⬅</button>
-            
-            <div className="header-title-box">
-                <h1>Student Forum 🌍</h1>
-                <p>Connect • Share • Discuss</p>
-            </div>
+    // Navbar component removed from here ✅
+    <div className="stu-comm-container">
+      
+      {/* HEADER */}
+      <header className="comm-header-glass custom-header-layout">
+          <button className="back-btn-glass" onClick={() => navigate('/homepage')}>⬅</button>
+          
+          <div className="header-title-box">
+              <h1>Student Forum 🌍</h1>
+              <p>Connect • Share • Discuss</p>
+          </div>
 
-            {/* Asli Photo wala Button */}
-            <div className="header-profile-pic-container" onClick={() => navigate('/student/community-profile')}>
-                 <img src={userData.photo || "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"} alt="Profile" />
-            </div>
-        </header>
+          {/* Profile Button */}
+          <div className="header-profile-pic-container" onClick={() => navigate('/student/community-profile')}>
+               <img src={userData.photo || "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"} alt="Profile" />
+          </div>
+      </header>
 
-        <div className="hub-tabs">
-            {["Global", "Department", "Class"].map(tab => (
-                <button key={tab} className={`tab-btn ${activeTab===tab?"active":""}`} onClick={()=>setActiveTab(tab)}>
-                    {tab === "Global" ? <FaGlobe/> : tab === "Class" ? <FaUsers/> : <FaUniversity/>} {tab}
-                </button>
-            ))}
-        </div>
-
-        <div className="comm-feed-area">
-            {/* Create Post */}
-            <div className="create-post-glass">
-                {previewUrl && <div className="image-preview-box"><img src={previewUrl} alt="Preview"/><FaTimes className="remove-img" onClick={()=>{setImage(null); setPreviewUrl("")}}/></div>}
-                <div className="cp-input-row">
-                    <img src={userData.photo} className="cp-avatar" alt="Me"/>
-                    <input placeholder={`Post in ${activeTab}... (@Mention supported)`} value={newPost} onChange={(e) => setNewPost(e.target.value)} disabled={uploading}/>
-                    <input type="file" ref={fileInputRef} hidden accept="image/*" onChange={handleImageChange} />
-                    <button className="attach-icon-btn" onClick={() => fileInputRef.current.click()}><FaImage/></button>
-                    <button className="send-icon-btn" onClick={handlePost} disabled={uploading}><FaPaperPlane/></button>
-                </div>
-            </div>
-
-            {/* Posts */}
-            <div className="posts-list">
-                {filteredPosts.map((post) => {
-                    const isLiked = post.likes?.includes(userData.uid);
-                    const isMe = post.uid === userData.uid;
-
-                    return (
-                        <div key={post.id} className={`feed-card-glass ${post.role==="admin" ? "teacher-post" : ""}`}>
-                            <div className="post-header">
-                                <div className="poster-info">
-                                    <img src={post.senderPic || "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"} alt="U" />
-                                    <div>
-                                        <h4>{post.sender} {post.role==="admin" && <span className="teacher-badge">Faculty</span>}</h4>
-                                        <small>{post.time} • {post.channel}</small>
-                                    </div>
-                                </div>
-                                {isMe && <FaTrash className="delete-icon" onClick={()=>handleDelete(post.id)}/>}
-                            </div>
-
-                            <div className="post-body">
-                                <p>{renderText(post.text)}</p>
-                                {post.imageUrl && <img src={post.imageUrl} alt="Post" className="post-image" />}
-                            </div>
-
-                            <div className="post-footer">
-                                <button className={`action-btn ${isLiked ? 'liked' : ''}`} onClick={() => handleLike(post)}>
-                                    {isLiked ? <FaHeart/> : <FaRegHeart/>} <span>{post.likes?.length || 0}</span>
-                                </button>
-                                <button className="action-btn" onClick={() => setActiveCommentId(activeCommentId === post.id ? null : post.id)}>
-                                    <FaComment/> <span>{post.commentCount || 0}</span>
-                                </button>
-                            </div>
-
-                            {/* COMMENT SECTION */}
-                            {activeCommentId === post.id && (
-                                <div className="comment-section">
-                                    <div className="comment-list">
-                                        {comments.map(c => (
-                                            <div key={c.id} className="comment-bubble">
-                                                <strong>{c.sender}: </strong> {renderText(c.text)}
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <div className="comment-input-row">
-                                        <input placeholder="Add a comment..." value={newComment} onChange={(e)=>setNewComment(e.target.value)} />
-                                        <button onClick={()=>handleSendComment(post.id)}><FaPaperPlane/></button>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    );
-                })}
-            </div>
-        </div>
+      <div className="hub-tabs">
+          {["Global", "Department", "Class"].map(tab => (
+              <button key={tab} className={`tab-btn ${activeTab===tab?"active":""}`} onClick={()=>setActiveTab(tab)}>
+                  {tab === "Global" ? <FaGlobe/> : tab === "Class" ? <FaUsers/> : <FaUniversity/>} {tab}
+              </button>
+          ))}
       </div>
-    </>
+
+      <div className="comm-feed-area">
+          {/* Create Post */}
+          <div className="create-post-glass">
+              {previewUrl && <div className="image-preview-box"><img src={previewUrl} alt="Preview"/><FaTimes className="remove-img" onClick={()=>{setImage(null); setPreviewUrl("")}}/></div>}
+              <div className="cp-input-row">
+                  <img src={userData.photo} className="cp-avatar" alt="Me"/>
+                  <input placeholder={`Post in ${activeTab}... (@Mention supported)`} value={newPost} onChange={(e) => setNewPost(e.target.value)} disabled={uploading}/>
+                  <input type="file" ref={fileInputRef} hidden accept="image/*" onChange={handleImageChange} />
+                  <button className="attach-icon-btn" onClick={() => fileInputRef.current.click()}><FaImage/></button>
+                  <button className="send-icon-btn" onClick={handlePost} disabled={uploading}><FaPaperPlane/></button>
+              </div>
+          </div>
+
+          {/* Posts */}
+          <div className="posts-list">
+              {filteredPosts.map((post) => {
+                  const isLiked = post.likes?.includes(userData.uid);
+                  const isMe = post.uid === userData.uid;
+
+                  return (
+                      <div key={post.id} className={`feed-card-glass ${post.role==="admin" ? "teacher-post" : ""}`}>
+                          <div className="post-header">
+                              <div className="poster-info">
+                                  <img src={post.senderPic || "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"} alt="U" />
+                                  <div>
+                                      <h4>{post.sender} {post.role==="admin" && <span className="teacher-badge">Faculty</span>}</h4>
+                                      <small>{post.time} • {post.channel}</small>
+                                  </div>
+                              </div>
+                              {isMe && <FaTrash className="delete-icon" onClick={()=>handleDelete(post.id)}/>}
+                          </div>
+
+                          <div className="post-body">
+                              <p>{renderText(post.text)}</p>
+                              {post.imageUrl && <img src={post.imageUrl} alt="Post" className="post-image" />}
+                          </div>
+
+                          <div className="post-footer">
+                              <button className={`action-btn ${isLiked ? 'liked' : ''}`} onClick={() => handleLike(post)}>
+                                  {isLiked ? <FaHeart/> : <FaRegHeart/>} <span>{post.likes?.length || 0}</span>
+                              </button>
+                              <button className="action-btn" onClick={() => setActiveCommentId(activeCommentId === post.id ? null : post.id)}>
+                                  <FaComment/> <span>{post.commentCount || 0}</span>
+                              </button>
+                          </div>
+
+                          {/* COMMENT SECTION */}
+                          {activeCommentId === post.id && (
+                              <div className="comment-section">
+                                  <div className="comment-list">
+                                      {comments.map(c => (
+                                          <div key={c.id} className="comment-bubble">
+                                              <strong>{c.sender}: </strong> {renderText(c.text)}
+                                          </div>
+                                      ))}
+                                  </div>
+                                  <div className="comment-input-row">
+                                      <input placeholder="Add a comment..." value={newComment} onChange={(e)=>setNewComment(e.target.value)} />
+                                      <button onClick={()=>handleSendComment(post.id)}><FaPaperPlane/></button>
+                                  </div>
+                              </div>
+                          )}
+                      </div>
+                  );
+              })}
+          </div>
+      </div>
+    </div>
   );
 };
 

@@ -28,6 +28,7 @@ import StudentList from "./components/AdminDashboard/StudentList";
 import AdminAI from "./components/AdminDashboard/AdminAI";
 import StaffRoom from './components/AdminDashboard/StaffRoom';
 import AdminIDCard from './components/AdminDashboard/AdminIDCard';
+import AdminAssignments from './components/AdminDashboard/AdminAssignments';
 
 // 🔥 UPDATED IMPORT (CommunitySelection Removed)
 import AdminCommunity from './components/Community/AdminCommunity';
@@ -125,6 +126,8 @@ function App() {
           <Route path="/admin/id-cards" element={
           <ProtectedRoute requiredRole="admin"> <AdminIDCard /> </ProtectedRoute>
           } />
+          
+          <Route path="/admin/assignments" element={<AdminAssignments />} />
           
           {/* Classroom & Subjects */}
           <Route path="/admin/class-selection" element={
