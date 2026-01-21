@@ -36,7 +36,7 @@
 .pill-btn {
     padding: 8px 16px; border-radius: 20px; border: none;
     background: rgba(255,255,255,0.4); color: #334155; font-weight: 600; font-size: 0.85rem;
-    cursor: pointer; transition: 0.2s;
+    cursor: pointer; transition: 0.2s; white-space: nowrap; /* Text break nahi hoga */
 }
 .pill-btn.active { background: #1e293b; color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 
@@ -156,9 +156,40 @@ label { display: block; margin-bottom: 6px; font-size: 0.85rem; font-weight: 600
 .save-btn { flex: 2; background: #1e293b; color: white; padding: 12px; border-radius: 12px; border: none; font-weight: 600; cursor: pointer; }
 .cancel-btn { flex: 1; background: #f1f5f9; color: #334155; padding: 12px; border-radius: 12px; border: none; font-weight: 600; cursor: pointer; }
 
-/* Responsive */
+/* 🔥 RESPONSIVE FIX (MOBILE) 🔥 */
 @media (max-width: 768px) {
-    .assign-body { flex-direction: column; overflow-y: auto; height: auto; }
-    .assign-panel { height: 400px; }
-    .year-pills { display: none; /* Mobile pe selector drop kar sakte hain ya dropdown bana sakte hain */ }
+    /* Header ko vertical kar diya taaki jagah mile */
+    .assign-header-glass {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    /* Year Pills ko wapas dikhaya aur scrollable banaya */
+    .year-pills { 
+        display: flex; /* Pehle 'none' tha, ab 'flex' kar diya */
+        width: 100%;
+        overflow-x: auto; /* Horizontal Scroll */
+        padding-bottom: 5px;
+    }
+
+    /* Buttons ko thoda adjust kiya */
+    .pill-btn {
+        flex: 1;
+        min-width: 80px; /* Minimum width taaki dab na jaye */
+        text-align: center;
+    }
+
+    /* Body Layout Fix */
+    .assign-body { 
+        flex-direction: column; 
+        overflow-y: auto; 
+        height: auto; 
+        padding: 15px;
+    }
+    
+    .assign-panel { 
+        height: auto; 
+        min-height: 400px; /* Minimum height di */
+    }
 }
