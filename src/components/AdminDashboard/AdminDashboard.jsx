@@ -39,19 +39,18 @@ const AdminDashboard = () => {
     if (!currentDept) return;
     const fetchStats = async () => {
       try {
+        // Students: Filter by Department (Sahi hai)
         const studentsQ = query(collection(db, "users"), where("department", "==", currentDept), where("role", "==", "student"));
         const studentSnap = await getCountFromServer(studentsQ);
 
-        const facultyQ = query(collection(db, "admins"), where("department", "==", currentDept));
-        const facultySnap = await getCountFromServer(facultyQ);
+        // 🔥 FIX: Faculty (Admins) ka count GLOBAL rakhein (Department filter hata diya)
+        const facultyColl = collection(db, "admins");
+        const facultySnap = await getCountFromServer(facultyColl);
         
-        let facultyCount = facultySnap.data().count;
-        if(facultyCount === 0) facultyCount = 1; 
-
         setStats(prev => ({
             ...prev,
             students: studentSnap.data().count,
-            faculty: facultyCount
+            faculty: facultySnap.data().count // Ab ye real count dikhayega (e.g. 2)
         }));
       } catch (error) { console.error("Stats Error:", error); }
     };
@@ -140,7 +139,7 @@ const AdminDashboard = () => {
             <div className="ios-widget">
                 <div className="widget-content">
                     <h3>{stats.faculty}</h3>
-                    <p>Faculty</p>
+                    <p>Faculty (Admins)</p>
                     <div className="widget-icon" style={{background:'#f093fb'}}><FaCrown/></div>
                 </div>
             </div>

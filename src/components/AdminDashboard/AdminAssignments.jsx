@@ -2,14 +2,16 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./AdminAssignments.css";
 import { FaArrowLeft, FaPlus, FaTrash, FaCheckCircle, FaClipboardList, FaBookOpen, FaCalendarAlt } from "react-icons/fa";
-import { db } from "../../firebase"; 
+import { db, auth } from "../../firebase"; 
 import { collection, addDoc, deleteDoc, doc, query, where, onSnapshot, orderBy, serverTimestamp, setDoc } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
 
 const AdminAssignments = () => {
   const navigate = useNavigate();
   const currentDept = localStorage.getItem("currentDept") || "Computer Engineering"; 
+  const [currentUser, setCurrentUser] = useState(null);
 
-  // --- 1. SUBJECT DATA (Static for now, later fetch from DB if needed) ---
+  // --- 1. SUBJECT DATA ---
   const subjectsData = {
     "1st Year": ["Engineering Maths I", "Engineering Physics", "Basic Electrical", "Engineering Mechanics", "Other"],
     "2nd Year": ["Data Structures", "Discrete Maths", "Digital Logic", "COA", "Python Programming", "Other"],
@@ -28,27 +30,39 @@ const AdminAssignments = () => {
   
   // New Assignment Form States
   const [selectedSubject, setSelectedSubject] = useState("");
-  const [customSubject, setCustomSubject] = useState(""); // For 'Other'
+  const [customSubject, setCustomSubject] = useState(""); 
   const [newTitle, setNewTitle] = useState("");
   const [newDesc, setNewDesc] = useState("");
   const [newDate, setNewDate] = useState("");
 
-  // 2. FETCH ASSIGNMENTS
+  // 🔥 0. AUTH CHECK (User ID lene ke liye)
   useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (user) => {
+        if (user) setCurrentUser(user);
+        else navigate("/");
+    });
+    return () => unsub();
+  }, [navigate]);
+
+  // 🔥 1. FETCH ASSIGNMENTS (Sirf Current User ne banaye hue)
+  useEffect(() => {
+    if (!currentUser) return;
+
     const q = query(
         collection(db, "assignments"), 
         where("department", "==", currentDept),
         where("year", "==", selectedYear),
+        where("createdBy", "==", currentUser.uid), // 👈 SIRF MERA DATA DIKHAO
         orderBy("createdAt", "desc")
     );
     const unsub = onSnapshot(q, (snap) => {
         setAssignments(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-        setSelectedAssignment(null); // Reset selection
+        setSelectedAssignment(null); 
     });
     return () => unsub();
-  }, [selectedYear, currentDept]);
+  }, [selectedYear, currentDept, currentUser]);
 
-  // 3. FETCH STUDENTS
+  // 2. FETCH STUDENTS (Department ke hisab se)
   useEffect(() => {
     const q = query(
         collection(db, "users"), 
@@ -62,7 +76,7 @@ const AdminAssignments = () => {
     return () => unsub();
   }, [selectedYear, currentDept]);
 
-  // 4. FETCH SUBMISSIONS
+  // 3. FETCH SUBMISSIONS
   useEffect(() => {
     if (!selectedAssignment) return;
     const q = query(collection(db, "submissions"), where("assignmentId", "==", selectedAssignment.id));
@@ -76,7 +90,6 @@ const AdminAssignments = () => {
 
   // --- CREATE ASSIGNMENT LOGIC ---
   const handleCreateAssignment = async () => {
-      // Logic: Agar "Other" select kiya hai to Custom Subject use karein, nahi to Dropdown wala
       const finalSubject = selectedSubject === "Other" ? customSubject : selectedSubject;
 
       if (!finalSubject || !newTitle || !newDate) {
@@ -85,16 +98,16 @@ const AdminAssignments = () => {
       }
       
       await addDoc(collection(db, "assignments"), {
-          subject: finalSubject, // 🔥 Save Subject
-          title: newTitle,       // 🔥 Save Topic Name (e.g. Assignment 1)
+          subject: finalSubject, 
+          title: newTitle,       
           description: newDesc,
           dueDate: newDate,
           department: currentDept,
           year: selectedYear,
+          createdBy: currentUser.uid, // 👈 ID SAVE KARO
           createdAt: serverTimestamp()
       });
 
-      // Close & Reset
       setShowCreateModal(false); 
       setNewTitle(""); setNewDesc(""); setNewDate(""); setSelectedSubject(""); setCustomSubject("");
   };
@@ -112,9 +125,9 @@ const AdminAssignments = () => {
       const subRef = doc(db, "submissions", subId);
 
       if (submissions[student.id]) {
-          await deleteDoc(subRef); // Uncheck
+          await deleteDoc(subRef); 
       } else {
-          await setDoc(subRef, { // Check
+          await setDoc(subRef, { 
               assignmentId: selectedAssignment.id,
               studentUid: student.id,
               studentName: student.name,
@@ -129,8 +142,6 @@ const AdminAssignments = () => {
 
   return (
     <div className="assign-wrapper-ios">
-      
-      {/* HEADER */}
       <header className="assign-header-glass">
           <div className="header-left">
             <button className="back-btn-glass" onClick={() => navigate('/admin-dashboard')}>
@@ -141,7 +152,6 @@ const AdminAssignments = () => {
                 <p>Manage Tasks for <strong>{currentDept}</strong></p>
             </div>
           </div>
-          
           <div className="year-pills">
               {["1st Year", "2nd Year", "3rd Year", "4th Year"].map(yr => (
                   <button key={yr} className={`pill-btn ${selectedYear === yr ? "active" : ""}`} onClick={() => setSelectedYear(yr)}>
@@ -152,8 +162,6 @@ const AdminAssignments = () => {
       </header>
 
       <div className="assign-body">
-          
-          {/* 1. ASSIGNMENT LIST (Left) */}
           <div className="assign-panel list-panel">
               <div className="panel-top">
                   <h3>Tasks ({assignments.length})</h3>
@@ -170,9 +178,7 @@ const AdminAssignments = () => {
                             className={`task-item ${selectedAssignment?.id === assign.id ? 'selected' : ''}`}
                             onClick={() => setSelectedAssignment(assign)}
                           >
-                              <div className="task-icon">
-                                  <FaBookOpen />
-                              </div>
+                              <div className="task-icon"><FaBookOpen /></div>
                               <div className="task-details">
                                   <span className="task-subject">{assign.subject}</span>
                                   <h4>{assign.title}</h4>
@@ -189,7 +195,6 @@ const AdminAssignments = () => {
               </div>
           </div>
 
-          {/* 2. STUDENT CHECKLIST (Right) */}
           <div className="assign-panel check-panel">
               {selectedAssignment ? (
                   <>
@@ -217,7 +222,7 @@ const AdminAssignments = () => {
                                   </div>
                               ))
                           ) : (
-                              <div className="empty-placeholder">No students in this class 🎓</div>
+                              <div className="empty-placeholder">No students in {selectedYear} 🎓</div>
                           )}
                       </div>
                   </>
@@ -229,17 +234,14 @@ const AdminAssignments = () => {
                   </div>
               )}
           </div>
-
       </div>
 
-      {/* CREATE MODAL (Improved) */}
       {showCreateModal && (
           <div className="modal-overlay-glass">
               <div className="modal-card">
                   <h3>Create Assignment</h3>
                   <p>For: <strong>{selectedYear}</strong> • {currentDept}</p>
                   
-                  {/* 1. Subject Dropdown */}
                   <label>Subject</label>
                   <select 
                     value={selectedSubject} 
@@ -252,7 +254,6 @@ const AdminAssignments = () => {
                       ))}
                   </select>
 
-                  {/* Optional: Custom Subject Input */}
                   {selectedSubject === "Other" && (
                       <input 
                         type="text" 
@@ -263,7 +264,6 @@ const AdminAssignments = () => {
                       />
                   )}
 
-                  {/* 2. Topic Title */}
                   <label>Assignment Topic / Title</label>
                   <input 
                     type="text" 
@@ -273,7 +273,6 @@ const AdminAssignments = () => {
                     onChange={(e) => setNewTitle(e.target.value)} 
                   />
 
-                  {/* 3. Description & Date */}
                   <div className="input-row">
                       <div className="half-input">
                         <label>Due Date</label>
@@ -296,7 +295,6 @@ const AdminAssignments = () => {
               </div>
           </div>
       )}
-
     </div>
   );
 };

@@ -8,167 +8,91 @@ import { doc, getDoc } from "firebase/firestore";
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  
-  // Sirf Student Credentials rakhenge
   const [credentials, setCredentials] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  // --- FORGOT PASSWORD STATES ---
   const [showResetModal, setShowResetModal] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
 
-  useEffect(() => {
-    // Purana session clear
-    localStorage.removeItem("userRole");
-    localStorage.removeItem("userName");
-    localStorage.removeItem("userYear");
-  }, []);
+  useEffect(() => { localStorage.clear(); }, []);
 
   const handleChange = (e) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
     setError("");
   };
 
-  // --- LOGIN LOGIC (ONLY STUDENT) ---
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       const userCredential = await signInWithEmailAndPassword(auth, credentials.email, credentials.password);
-      const user = userCredential.user;
-      
-      // Check karo ki ye Student hai ya nahi
-      const userDoc = await getDoc(doc(db, "users", user.uid));
+      const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
       
       if (userDoc.exists()) {
         const userData = userDoc.data();
-        
-        // Agar galti se Admin yahan login karne ki koshish kare
         if(userData.role === 'admin') {
-           setError("⚠️ Admins please use the Admin Portal tab.");
-           setLoading(false);
-           return;
+           setError("⛔ Admins please use Admin Portal.");
+           auth.signOut();
+        } else {
+           navigate("/homepage");
         }
-
-        localStorage.setItem("userRole", "student");
-        localStorage.setItem("userName", userData.name);
-        localStorage.setItem("userYear", userData.year);
-        navigate("/homepage");
       } else {
         setError("⚠️ User data not found.");
+        auth.signOut();
       }
-    } catch (err) {
-      console.error(err);
-      setError("❌ Incorrect Email or Password.");
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) { setError("❌ Incorrect Email or Password."); } 
+    finally { setLoading(false); }
   };
 
-  // --- FORGOT PASSWORD ---
   const handleForgotPassword = async () => {
-    if (!resetEmail) {
-      alert("⚠️ Please enter your email first!");
-      return;
-    }
-    try {
-      await sendPasswordResetEmail(auth, resetEmail);
-      alert("✅ Password Reset Link Sent! Check your Email.");
-      setShowResetModal(false);
-      setResetEmail("");
-    } catch (error) {
-      alert("❌ Error: " + error.message);
-    }
+    if (!resetEmail) return alert("Enter email!");
+    try { await sendPasswordResetEmail(auth, resetEmail); alert("Link Sent!"); setShowResetModal(false); }
+    catch (e) { alert(e.message); }
   };
 
   return (
     <div className="login-wrapper">
       <div className="login-card">
-        
-        {/* 👇 UPDATED ROLE SWITCH (Redirects to Admin Page) */}
         <div className="role-switch">
           <button className="role-btn active">Student</button>
-          
-          {/* Admin click karte hi naye secure page par jayega */}
-          <button 
-            className="role-btn" 
-            onClick={() => navigate("/admin-login")}
-          >
-            Admin
-          </button>
+          <button className="role-btn" onClick={() => navigate("/admin-login")}>Admin</button>
         </div>
 
-        {/* Header */}
         <div className="login-header">
           <div className="icon-circle"><FaUserGraduate /></div>
           <h2>Student Login</h2>
-          <p>Access your study materials</p>
+          <p>Access your dashboard</p>
         </div>
 
-        {/* Login Form */}
-        <form onSubmit={handleLogin} className="login-form">
+        <form onSubmit={handleLogin}>
           <div className="input-field">
             <FaEnvelope className="field-icon" />
-            <input 
-              type="email" 
-              name="email" 
-              placeholder="Student Email" 
-              value={credentials.email} 
-              onChange={handleChange} 
-              required
-            />
+            <input type="email" name="email" placeholder="Email" value={credentials.email} onChange={handleChange} required />
           </div>
-          
           <div className="input-field">
             <FaLock className="field-icon" />
-            <input 
-              type="password" 
-              name="password" 
-              placeholder="Password" 
-              value={credentials.password} 
-              onChange={handleChange} 
-              required
-            />
+            <input type="password" name="password" placeholder="Password" value={credentials.password} onChange={handleChange} required />
           </div>
-
-          <div className="forgot-pass-link" onClick={() => setShowResetModal(true)}>
-            Forgot Password?
-          </div>
-
+          <div className="forgot-pass-link" onClick={() => setShowResetModal(true)}>Forgot Password?</div>
           {error && <p className="error-msg">{error}</p>}
-
           <button type="submit" className="login-submit-btn" disabled={loading}>
             {loading ? "Checking..." : "Login"} <FaArrowRight />
           </button>
         </form>
 
-        <p style={{marginTop: '20px', fontSize: '0.9rem', color: '#555'}}>
-          New Student? <span onClick={() => navigate("/register")} style={{color: '#667eea', cursor: 'pointer', fontWeight: 'bold'}}>Create Account</span>
-        </p>
-
+        <p className="bottom-text">New Student? <span onClick={() => navigate("/register")}>Create Account</span></p>
       </div>
 
-      {/* Forgot Password Modal */}
       {showResetModal && (
         <div className="modal-overlay">
           <div className="modal-content">
             <button className="close-modal" onClick={() => setShowResetModal(false)}><FaTimes /></button>
-            <h3>Reset Password 🔒</h3>
-            <p>Enter your email to receive a reset link.</p>
-            <input 
-              type="email" 
-              className="modal-input"
-              placeholder="Enter your registered email"
-              value={resetEmail}
-              onChange={(e) => setResetEmail(e.target.value)}
-            />
+            <h3>Reset Password</h3>
+            <input type="email" className="modal-input" placeholder="Email" value={resetEmail} onChange={(e) => setResetEmail(e.target.value)} />
             <button className="modal-btn" onClick={handleForgotPassword}>Send Link</button>
           </div>
         </div>
       )}
-
     </div>
   );
 };

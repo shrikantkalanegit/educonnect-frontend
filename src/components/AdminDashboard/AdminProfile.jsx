@@ -9,7 +9,7 @@ import {
 
 import { auth, db } from "../../firebase";
 import { signOut, sendPasswordResetEmail, onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, updateDoc, addDoc, collection, serverTimestamp, Timestamp } from "firebase/firestore";
+import { doc, getDoc, updateDoc, addDoc, setDoc, collection, serverTimestamp, Timestamp } from "firebase/firestore";
 import Cropper from "react-easy-crop"; 
 import { getCroppedImg } from "../../utils/cropUtils"; 
 
@@ -77,18 +77,14 @@ const AdminProfile = () => {
   const showCroppedImage = async () => {
     try {
       const croppedBlob = await getCroppedImg(imageSrc, croppedAreaPixels);
-      
-      // Local Preview
       const localUrl = URL.createObjectURL(croppedBlob);
       setUserData(prev => ({ ...prev, photo: localUrl }));
       
-      // Save to Firebase (Base64)
       const reader = new FileReader();
       reader.readAsDataURL(croppedBlob);
       reader.onloadend = async () => {
           await updateDoc(doc(db, "admins", auth.currentUser.uid), { photo: reader.result });
       }
-
       setIsCropping(false);
     } catch (e) { console.error(e); }
   };
@@ -101,12 +97,22 @@ const AdminProfile = () => {
     setShowEditModal(false);
   };
 
+  // 🔥 MAIN FIX: Invite Admin Function
   const handleAddAdmin = async () => {
     if(!newAdminEmail || !newAdminName) return alert("Fill details");
-    await addDoc(collection(db, "allowed_admins"), {
-        email: newAdminEmail, name: newAdminName, addedBy: userData.email, createdAt: serverTimestamp()
+    
+    // 1. Email ko clean (lowercase) karo taaki ID match ho sake
+    const cleanEmail = newAdminEmail.trim().toLowerCase();
+
+    // 2. addDoc nahi, setDoc use karo aur ID = Email rakho
+    await setDoc(doc(db, "allowed_admins", cleanEmail), {
+        email: cleanEmail, 
+        name: newAdminName, 
+        addedBy: userData.email, 
+        createdAt: serverTimestamp()
     });
-    alert(`Invitation Sent!`);
+
+    alert(`Invitation Sent to ${cleanEmail}!`);
     setShowAdminModal(false);
     setNewAdminEmail(""); setNewAdminName("");
   };
@@ -140,7 +146,7 @@ const AdminProfile = () => {
   return (
     <div className="aurora-profile-page">
       
-      {/* HEADER (Glass) */}
+      {/* HEADER */}
       <div className="aurora-nav-header">
         <button className="aurora-back-btn" onClick={() => navigate('/admin-dashboard')}>
             <FaChevronLeft /> Dashboard
@@ -151,7 +157,7 @@ const AdminProfile = () => {
 
       <div className="aurora-scroll-content">
         
-        {/* --- PROFILE HEADER --- */}
+        {/* PROFILE HEADER */}
         <div className="aurora-profile-header">
             <div className="aurora-avatar-wrapper">
                 <img src={userData.photo || "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"} alt="Admin" />
@@ -165,7 +171,7 @@ const AdminProfile = () => {
             <button className="aurora-edit-pill" onClick={() => setShowEditModal(true)}>Edit Profile</button>
         </div>
 
-        {/* --- MENU GROUP 1: ACTIONS (Glass Cards) --- */}
+        {/* MENU 1 */}
         <div className="aurora-list-group">
             <div className="aurora-list-item" onClick={() => setShowAdminModal(true)}>
                 <div className="aurora-icon green"><FaUserPlus /></div>
@@ -184,7 +190,7 @@ const AdminProfile = () => {
             </div>
         </div>
 
-        {/* --- MENU GROUP 2: SETTINGS --- */}
+        {/* MENU 2 */}
         <div className="aurora-list-group">
             <div className="aurora-list-item" onClick={() => {sendPasswordResetEmail(auth, userData.email); alert("Check Email!");}}>
                 <div className="aurora-icon blue"><FaIdBadge /></div>
@@ -193,19 +199,15 @@ const AdminProfile = () => {
             </div>
         </div>
 
-        {/* --- LOGOUT --- */}
+        {/* LOGOUT */}
         <div className="aurora-list-group">
             <div className="aurora-list-item center-text" onClick={handleLogout}>
                 <span className="aurora-label red-text">Log Out</span>
             </div>
         </div>
-
-    
       </div>
 
-      {/* --- MODALS (Glass Theme) --- */}
-
-      {/* 1. EDIT NAME */}
+      {/* MODALS */}
       {showEditModal && (
         <div className="glass-modal-overlay">
             <div className="glass-modal">
@@ -216,7 +218,6 @@ const AdminProfile = () => {
         </div>
       )}
 
-      {/* 2. INVITE ADMIN */}
       {showAdminModal && (
         <div className="glass-modal-overlay">
             <div className="glass-modal">
@@ -228,7 +229,6 @@ const AdminProfile = () => {
         </div>
       )}
 
-      {/* 3. CAMPUS UPDATE */}
       {showNoticeModal && (
         <div className="glass-modal-overlay">
             <div className="glass-modal">
@@ -260,7 +260,6 @@ const AdminProfile = () => {
         </div>
       )}
 
-      {/* 4. CROPPER (Full Screen) */}
       {isCropping && (
          <div className="cropper-fullscreen">
             <div className="crop-container">
