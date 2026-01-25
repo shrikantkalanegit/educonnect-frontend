@@ -1,14 +1,21 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./RegisterPage.css";
 import { Link, useNavigate } from 'react-router-dom';
 import { auth, db } from "../../firebase"; 
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc, collection, getDocs, query, orderBy, where, updateDoc } from "firebase/firestore"; 
+import emailjs from '@emailjs/browser'; // 🔥 IMPORT EMAILJS
 
 function RegisterPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [departmentList, setDepartmentList] = useState([]);
+
+  // --- OTP STATES ---
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [generatedOtp, setGeneratedOtp] = useState(null);
+  const [enteredOtp, setEnteredOtp] = useState("");
+  const [allowedDocId, setAllowedDocId] = useState(null); // Database ID store karne ke liye
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -36,7 +43,8 @@ function RegisterPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
+  // 🔥 STEP 1: VALIDATE & SEND OTP
+  const handleInitiateRegistration = async (e) => {
     e.preventDefault();
 
     if (formData.password !== formData.confirmPassword) return alert("❌ Passwords match nahi ho rahe!");
@@ -45,9 +53,8 @@ function RegisterPage() {
     try {
       setLoading(true);
       const cleanStudentId = formData.studentId.trim().toUpperCase();
-      const cleanEmail = formData.email.trim().toLowerCase();
-
-      // 1. Verify Student ID in Database
+      
+      // 1. Check in 'allowed_students'
       const q = query(
         collection(db, "allowed_students"), 
         where("studentId", "==", cleanStudentId), 
@@ -72,49 +79,89 @@ function RegisterPage() {
          return alert("⚠️ Yeh Student ID pehle se register ho chuka hai!");
       }
 
-      // 2. Create Authentication
-      const userCredential = await createUserWithEmailAndPassword(auth, cleanEmail, formData.password);
-      const user = userCredential.user;
+      // Store Document ID for later
+      setAllowedDocId(allowedDoc.id);
 
-      // 3. Save User Data
-      await setDoc(doc(db, "users", user.uid), {
-        uid: user.uid,
-        name: formData.fullName.trim(), 
-        email: cleanEmail,
-        studentId: cleanStudentId,
-        department: formData.department,
-        year: formData.year,
-        role: "student",
-        createdAt: new Date().toISOString()
-      });
+      // 2. GENERATE OTP
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      setGeneratedOtp(otp);
 
-      // 4. Mark as Registered
-      await updateDoc(doc(db, "allowed_students", allowedDoc.id), {
-        isRegistered: true,
-        registeredUid: user.uid,
-        name: formData.fullName.trim()
-      });
-      
-      alert("✅ Account Successfully Created!");
-      navigate("/");
+      // 3. SEND EMAIL via EmailJS
+      const emailParams = {
+          to_name: formData.fullName,
+          to_email: formData.email,
+          otp_code: otp,
+      };
+
+      // ⚠️ REPLACE WITH YOUR EMAILJS SERVICE_ID, TEMPLATE_ID, PUBLIC_KEY
+      await emailjs.send('service_pw0etax','template_mfc699v', emailParams, '2TNW2dw-Ia5Mp4mVX');
+
+      setLoading(false);
+      setShowOtpModal(true); // Open OTP Modal
+      alert(`✅ OTP sent to ${formData.email}. Please verify!`);
 
     } catch (error) {
       console.error(error);
-      alert("❌ Error: " + error.message);
-    } finally {
       setLoading(false);
+      alert("❌ OTP Send Failed: " + error.message);
     }
+  };
+
+  // 🔥 STEP 2: VERIFY OTP & CREATE ACCOUNT
+  const handleVerifyAndRegister = async () => {
+      if (enteredOtp !== generatedOtp) {
+          return alert("❌ Invalid OTP! Please try again.");
+      }
+
+      try {
+          setLoading(true);
+          const cleanEmail = formData.email.trim().toLowerCase();
+          const cleanStudentId = formData.studentId.trim().toUpperCase();
+
+          // 1. Create User in Firebase Auth
+          const userCredential = await createUserWithEmailAndPassword(auth, cleanEmail, formData.password);
+          const user = userCredential.user;
+
+          // 2. Save User Data in Firestore
+          await setDoc(doc(db, "users", user.uid), {
+            uid: user.uid,
+            name: formData.fullName.trim(), 
+            email: cleanEmail,
+            studentId: cleanStudentId,
+            department: formData.department,
+            year: formData.year,
+            role: "student",
+            createdAt: new Date().toISOString()
+          });
+
+          // 3. Mark ID as Registered
+          await updateDoc(doc(db, "allowed_students", allowedDocId), {
+            isRegistered: true,
+            registeredUid: user.uid,
+            name: formData.fullName.trim()
+          });
+
+          setLoading(false);
+          setShowOtpModal(false);
+          alert("🎉 Registration Successful! Welcome.");
+          navigate("/");
+
+      } catch (error) {
+          console.error(error);
+          setLoading(false);
+          alert("❌ Registration Error: " + error.message);
+      }
   };
 
   return (
     <div className="register-wrapper">
       <div className="register-card">
         <h2>Student Registration 🎓</h2>
-        <p className="reg-subtitle">Only Verified IDs Allowed</p>
+        <p className="reg-subtitle">Email Verification Required</p>
         
-        <form className="register-form" onSubmit={handleSubmit}>
+        <form className="register-form" onSubmit={handleInitiateRegistration}>
           <input type="text" name="fullName" placeholder="Full Name" value={formData.fullName} onChange={handleChange} required />
-          <input type="email" name="email" placeholder="Email ID" value={formData.email} onChange={handleChange} required />
+          <input type="email" name="email" placeholder="Email ID (OTP will be sent here)" value={formData.email} onChange={handleChange} required />
           
           <input 
             type="text" name="studentId" placeholder="Student ID / Roll No" 
@@ -138,12 +185,39 @@ function RegisterPage() {
           <input type="password" name="confirmPassword" placeholder="Confirm Password" value={formData.confirmPassword} onChange={handleChange} required />
           
           <button type="submit" disabled={loading} className="reg-btn">
-            {loading ? "Verifying..." : "Register Securely"}
+            {loading ? "Processing..." : "Get OTP & Register"}
           </button>
           
           <p className="login-link">Already registered? <Link to="/">Login here</Link></p>
         </form>
       </div>
+
+      {/* 🔥 OTP MODAL */}
+      {showOtpModal && (
+          <div className="modal-overlay">
+              <div className="modal-box">
+                  <h3>Verify Email 📧</h3>
+                  <p>Enter the 6-digit OTP sent to <b>{formData.email}</b></p>
+                  
+                  <input 
+                    type="text" 
+                    placeholder="Enter OTP" 
+                    className="otp-input"
+                    value={enteredOtp}
+                    maxLength="6"
+                    onChange={(e) => setEnteredOtp(e.target.value)}
+                  />
+                  
+                  <div className="modal-actions">
+                      <button className="cancel-btn" onClick={() => setShowOtpModal(false)}>Cancel</button>
+                      <button className="create-btn" onClick={handleVerifyAndRegister} disabled={loading}>
+                          {loading ? "Creating Account..." : "Verify & Submit"}
+                      </button>
+                  </div>
+              </div>
+          </div>
+      )}
+
     </div>
   );
 }

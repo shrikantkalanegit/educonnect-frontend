@@ -11,7 +11,7 @@ import { auth, db } from "../../firebase";
 import { doc, onSnapshot, collection, query, orderBy, where, getCountFromServer } from "firebase/firestore"; 
 import { onAuthStateChanged } from "firebase/auth";
 
-const AdminDashboard = () => {
+  const AdminDashboard = () => {
   const navigate = useNavigate();
   const [profilePic, setProfilePic] = useState("");
   const [adminName, setAdminName] = useState("Admin");

@@ -28,15 +28,21 @@ const HomePage = () => {
 
   useEffect(() => {
     const unsubAuth = onAuthStateChanged(auth, async (user) => {
-      if (!user) return; 
-      if (user.displayName) setUserName(user.displayName.split(" ")[0]);
+      if (!user) { navigate("/"); return; } 
 
       try {
-        // 1. Fetch Student Details
+        // 1. Fetch Student Details form Firestore
         const docRef = doc(db, "users", user.uid);
         const docSnap = await getDoc(docRef);
+        
         if (docSnap.exists()) {
             const data = docSnap.data();
+            
+            // 🔥 FIX: Database se Name set karein (Sirf First Name dikhana hai to .split use karein)
+            if (data.name) {
+                setUserName(data.name.split(" ")[0]); 
+            }
+
             setStudentData({ 
                 department: data.department, 
                 year: data.year,
@@ -50,38 +56,30 @@ const HomePage = () => {
       } catch (e) { console.error("Error fetching user data:", e); }
     });
     return () => unsubAuth();
-  }, []);
+  }, [navigate]);
 
   // 🔥 FETCH REAL-TIME STATS (Attendance & Assignments)
   const fetchRealTimeStats = (uid, dept, year) => {
     
-    // A. Attendance Calculation (Count present records)
+    // A. Attendance Calculation
     const attendRef = collection(db, "attendance_records");
     const qAttend = query(attendRef, where("studentUid", "==", uid));
     
     onSnapshot(qAttend, (snap) => {
-        // Jitne documents mile, utni baar student present tha
         setAttendanceCount(snap.size); 
     });
 
-    // B. Assignment Logic (Total Given - Submitted = Pending)
-    // Note: Abhi hum sirf logic laga rahe hain. Jab aap Assignment Upload feature banayenge tab ye data dikhayega.
-    
-    // 1. Teacher ne kitne diye? (Assignment Collection)
-    const assignRef = collection(db, "assignments"); // Maan lo ye collection hai
+    // B. Assignment Logic
+    const assignRef = collection(db, "assignments"); 
     const qAssign = query(assignRef, where("department", "==", dept), where("year", "==", year));
     
-    // 2. Student ne kitne kiye? (Submissions Collection)
     const submitRef = collection(db, "submissions");
     const qSubmit = query(submitRef, where("studentUid", "==", uid));
 
-    // Dono ko track karo
     onSnapshot(qAssign, (assignSnap) => {
         const totalGiven = assignSnap.size;
-        
         onSnapshot(qSubmit, (submitSnap) => {
              const totalSubmitted = submitSnap.size;
-             // Pending kabhi negative nahi hona chahiye
              const pending = Math.max(0, totalGiven - totalSubmitted);
              setPendingAssignments(pending);
         });
@@ -127,6 +125,7 @@ const HomePage = () => {
         {/* Profile Link */}
         <div className="nav-profile-pill" onClick={() => navigate('/student-profile')}>
             {studentData.photo ? <img src={studentData.photo} alt="P" /> : <FaUserCircle/>}
+            {/* 🔥 Yahan bhi Naam dikhega */}
             <span>{userName}</span>
         </div>
       </nav>
@@ -137,6 +136,7 @@ const HomePage = () => {
         <header className="ios-header">
             <div>
                 <h1>Dashboard</h1>
+                {/* 🔥 Yahan "Good Morning, Name" dikhega */}
                 <p>Good Morning, <span className="dept-tag">{userName}</span></p>
             </div>
             <div className="date-pill">
@@ -147,20 +147,18 @@ const HomePage = () => {
         {/* WIDGETS */}
         <div className="widget-row">
             
-            {/* 🔥 1. ATTENDANCE WIDGET (Dynamic) */}
+            {/* 1. ATTENDANCE WIDGET */}
             <div className="ios-widget large-widget" onClick={() => navigate('/student/scan')}>
                 <div className="widget-content">
-                    {/* Abhi hum Percentage nahi, Count dikha rahe hain kyunki Total classes pata nahi hain */}
                     <h3>{attendanceCount} <span style={{fontSize:'1rem', color:'#666'}}>Sessions</span></h3>
                     <p>Total Present</p>
                     <div className="widget-icon" style={{background:'#d8b4fe'}}><FaQrcode/></div>
                 </div>
             </div>
 
-            {/* 🔥 2. ASSIGNMENTS WIDGET (Dynamic) */}
+            {/* 2. ASSIGNMENTS WIDGET */}
             <div className="ios-widget">
                 <div className="widget-content">
-                    {/* Agar 0 pending hai to "All Done" dikhaye */}
                     <h4>{pendingAssignments === 0 ? "✅" : pendingAssignments}</h4>
                     <p>{pendingAssignments === 0 ? "All Done" : "Pending"}</p>
                     <div className="widget-icon" style={{background:'#fca5a5'}}><FaClipboardList/></div>
